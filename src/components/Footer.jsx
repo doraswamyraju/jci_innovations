@@ -1,6 +1,5 @@
 import React from 'react';
 import { 
-  Building2, 
   MapPin, 
   Phone, 
   Mail, 
@@ -9,6 +8,7 @@ import {
   ShieldCheck, 
   ExternalLink 
 } from 'lucide-react';
+import JciLogo from './JciLogo';
 import { TIRUPATI_CHAPTERS } from '../data/mockData';
 
 export default function Footer({ onOpenRegister }) {
@@ -17,7 +17,7 @@ export default function Footer({ onOpenRegister }) {
       background: '#071022',
       color: '#cbd5e1',
       borderTop: '1px solid #1e293b',
-      paddingTop: '70px',
+      paddingTop: '60px',
       paddingBottom: '30px'
     }}>
       <div className="container">
@@ -28,44 +28,28 @@ export default function Footer({ onOpenRegister }) {
           gap: '40px',
           marginBottom: '50px'
         }}>
-          {/* Col 1: About LO */}
+          {/* Col 1: About LO & Official Logo */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #005696 0%, #f59e0b 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontWeight: '900',
-                fontSize: '1.1rem'
-              }}>
-                JCI
-              </div>
-              <span style={{ fontSize: '1.2rem', fontWeight: '800', color: '#ffffff' }}>
-                JCI Tirupati Innovations
-              </span>
+            <div style={{ marginBottom: '16px' }}>
+              <JciLogo height={44} isDark={true} />
             </div>
             <p style={{ fontSize: '0.88rem', color: '#94a3b8', lineHeight: '1.6', marginBottom: '18px' }}>
-              Pioneering young leaders, high-impact community programs, and B2B trade facilitation for Jaycees across the holy city of Tirupati.
+              Pioneering young leaders, high-impact community programs, and B2B trade facilitation for Jaycees across all 4 Local Organizations in the holy city of Tirupati.
             </p>
-            <div style={{ fontSize: '0.82rem', color: '#f59e0b', fontWeight: '600' }}>
+            <div style={{ fontSize: '0.82rem', color: '#f59e0b', fontWeight: '700' }}>
               Affiliated with JCI India • Zone IV
             </div>
           </div>
 
-          {/* Col 2: Tirupati Chapters */}
+          {/* Col 2: 4 Tirupati Chapters */}
           <div>
             <h4 style={{ fontSize: '1rem', fontWeight: '800', color: '#ffffff', marginBottom: '16px' }}>
-              Participating Tirupati Chapters
+              All 4 Tirupati Chapters
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.88rem' }}>
               {TIRUPATI_CHAPTERS.map(ch => (
                 <div key={ch.id} style={{ color: ch.isHost ? '#38bdf8' : '#94a3b8', fontWeight: ch.isHost ? '700' : '400' }}>
-                  • {ch.name}
+                  • {ch.name} {ch.isHost && '(Host Chapter • 4th LO)'}
                 </div>
               ))}
             </div>
@@ -126,12 +110,11 @@ export default function Footer({ onOpenRegister }) {
           color: '#64748b'
         }}>
           <div>
-            © 2026-2027 JCI Tirupati Innovations. All Rights Reserved. Built with pride for Tirupati Jaycees.
+            © 2026-2027 JCI Tirupati Innovations (4th LO). All Rights Reserved. Built with pride for Tirupati Jaycees.
           </div>
           <div style={{ display: 'flex', gap: '20px' }}>
             <a href="#" style={{ color: '#94a3b8' }}>Privacy Policy</a>
             <a href="#" style={{ color: '#94a3b8' }}>Code of Ethics</a>
-            <a href="#" style={{ color: '#94a3b8' }}>Admin Portal</a>
           </div>
         </div>
       </div>
