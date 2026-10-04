@@ -1,12 +1,10 @@
-// Mock Data for JCI Tirupati Innovations & All Tirupati Jaycees
+// Mock Data for JCI Tirupati Innovations & All 4 Tirupati Jaycees Chapters
 
 export const TIRUPATI_CHAPTERS = [
-  { id: 'innovations', name: 'JCI Tirupati Innovations (Host LO)', code: 'JCI-TI', isHost: true },
-  { id: 'tirupati_main', name: 'JCI Tirupati', code: 'JCI-TPT', isHost: false },
-  { id: 'central', name: 'JCI Tirupati Central', code: 'JCI-TC', isHost: false },
-  { id: 'royal', name: 'JCI Tirupati Royal', code: 'JCI-TR', isHost: false },
-  { id: 'heritage', name: 'JCI Tirupati Heritage', code: 'JCI-TH', isHost: false },
-  { id: 'youth', name: 'JCI Tirupati Youth Wing', code: 'JCI-TYW', isHost: false },
+  { id: 'innovations', name: 'JCI Tirupati Innovations', code: 'JCI-TI', isHost: true, desc: 'Host Chapter • 4th LO in Tirupati' },
+  { id: 'tirupati', name: 'JCI Tirupati', code: 'JCI-TPT', isHost: false, desc: 'Pioneer Chapter' },
+  { id: 'odyssey', name: 'JCI Tirupati Odyssey', code: 'JCI-TO', isHost: false, desc: 'Active Chapter' },
+  { id: 'power', name: 'JCI Tirupati Power', code: 'JCI-TP', isHost: false, desc: 'Dynamic Chapter' }
 ];
 
 export const BUSINESS_CATEGORIES = [
@@ -32,7 +30,7 @@ export const BUSINESSES = [
     ownerName: 'Jc. R. Dinesh Kumar',
     ownerDesignation: 'Vice President (Business), JCI Tirupati Innovations',
     chapter: 'JCI Tirupati Innovations',
-    logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
+    logo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80',
     coverImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1200&auto=format&fit=crop&q=80',
     tagline: 'Custom Web & Mobile Apps, Cloud ERP & Digital Transformation',
     description: 'Premier technology development studio based in Tirupati delivering mission-critical web platforms, enterprise software, mobile apps, and e-commerce portals across South India.',
@@ -49,26 +47,21 @@ export const BUSINESSES = [
     businessValueGenerated: '₹ 18,50,000',
     connectsReceived: 24,
     productsAndServices: [
-      { name: 'Custom ERP & CRM Development', desc: 'Automate business workflows and multi-branch operations', icon: 'Cpu' },
-      { name: 'Full-Stack Web & Mobile Apps', desc: 'React, Node, Flutter iOS & Android apps for startups & SMBs', icon: 'Smartphone' },
-      { name: 'Cloud Migration & AWS Hosting', desc: 'High availability, secure multi-tenant cloud architectures', icon: 'Cloud' },
-      { name: 'UI/UX & Brand Design', desc: 'Design systems, interactive prototypes, and branding assets', icon: 'Palette' }
-    ],
-    gallery: [
-      'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=600&auto=format&fit=crop&q=80'
+      { name: 'Custom ERP & CRM Development', desc: 'Automate business workflows and multi-branch operations' },
+      { name: 'Full-Stack Web & Mobile Apps', desc: 'React, Node, Flutter iOS & Android apps for startups & SMBs' },
+      { name: 'Cloud Migration & AWS Hosting', desc: 'High availability, secure multi-tenant cloud architectures' },
+      { name: 'UI/UX & Brand Design', desc: 'Design systems, interactive prototypes, and branding assets' }
     ]
   },
   {
     id: 'biz-2',
-    name: 'Balaji Ortho & Trauma Speciality Clinic',
+    name: 'Balaji Ortho & Trauma Care Clinic',
     slug: 'balaji-ortho-clinic',
     category: 'Healthcare & Clinics',
-    ownerName: 'Dr. Jc. K. Sumanth Reddy, MS (Ortho)',
+    ownerName: 'Dr. Jc. K. Sumanth Reddy, MS',
     ownerDesignation: 'Director (Community Impact), JCI Tirupati',
     chapter: 'JCI Tirupati',
-    logo: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=150&auto=format&fit=crop&q=80',
+    logo: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=200&auto=format&fit=crop&q=80',
     coverImage: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1200&auto=format&fit=crop&q=80',
     tagline: 'Advanced Joint Replacement, Sports Injury Care & Physiotherapy',
     description: 'Comprehensive bone and joint wellness center equipped with state-of-the-art robotic arthroscopy, digital X-ray, and specialized rehabilitation suites.',
@@ -85,13 +78,9 @@ export const BUSINESSES = [
     businessValueGenerated: '₹ 12,20,000',
     connectsReceived: 31,
     productsAndServices: [
-      { name: 'Joint Replacement & Arthroscopy', desc: 'Minimally invasive knee and hip surgeries', icon: 'Activity' },
-      { name: 'Sports Rehabilitation', desc: 'Targeted recovery for athletes, runners, and martial artists', icon: 'ShieldPlus' },
-      { name: 'Bone Density & Arthritis Clinic', desc: 'Preventative care and pain management', icon: 'HeartPulse' }
-    ],
-    gallery: [
-      'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=600&auto=format&fit=crop&q=80'
+      { name: 'Joint Replacement & Arthroscopy', desc: 'Minimally invasive knee and hip surgeries' },
+      { name: 'Sports Rehabilitation', desc: 'Targeted recovery for athletes, runners, and martial artists' },
+      { name: 'Bone Density & Arthritis Clinic', desc: 'Preventative care and pain management' }
     ]
   },
   {
@@ -100,9 +89,9 @@ export const BUSINESSES = [
     slug: 'saptagiri-infra-developers',
     category: 'Construction & Real Estate',
     ownerName: 'Jc. T. Venkatesh Chowdary',
-    ownerDesignation: 'Immediate Past President, JCI Tirupati Central',
-    chapter: 'JCI Tirupati Central',
-    logo: 'https://images.unsplash.com/photo-1541888946425-d0fbb180c5f5?w=150&auto=format&fit=crop&q=80',
+    ownerDesignation: 'Immediate Past President, JCI Tirupati Odyssey',
+    chapter: 'JCI Tirupati Odyssey',
+    logo: 'https://images.unsplash.com/photo-1541888946425-d0fbb180c5f5?w=200&auto=format&fit=crop&q=80',
     coverImage: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&auto=format&fit=crop&q=80',
     tagline: 'Premium Residential Layouts, Commercial Spaces & Eco-Precast Blocks',
     description: 'TUDA approved gated community layouts, commercial complex development, and innovative precast sustainable building solutions in and around Tirupati & Chandragiri.',
@@ -115,17 +104,13 @@ export const BUSINESSES = [
     reviewsCount: 29,
     isVerified: true,
     isBusinessOfTheDay: false,
-    memberOffer: 'Zero Registration Documentation Charges + Special Square Foot Member Rates',
+    memberOffer: 'Zero Documentation Charges + Special Square Foot Member Rates for Jaycees',
     businessValueGenerated: '₹ 45,00,000',
     connectsReceived: 18,
     productsAndServices: [
-      { name: 'TUDA Approved Plots', desc: 'Gated community open plots with 40ft blacktop roads & underground drainage', icon: 'Home' },
-      { name: 'Turnkey Construction', desc: 'A-Grade residential villas & commercial office construction', icon: 'Building2' },
-      { name: 'Eco Precast Wall Panels', desc: 'Fast-track thermal insulated concrete building systems', icon: 'Layers' }
-    ],
-    gallery: [
-      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=600&auto=format&fit=crop&q=80'
+      { name: 'TUDA Approved Plots', desc: 'Gated community open plots with 40ft blacktop roads' },
+      { name: 'Turnkey Construction', desc: 'A-Grade residential villas & commercial office construction' },
+      { name: 'Eco Precast Wall Panels', desc: 'Fast-track thermal insulated concrete building systems' }
     ]
   },
   {
@@ -136,7 +121,7 @@ export const BUSINESSES = [
     ownerName: 'Jc. CA M. Swathi Rao, FCA',
     ownerDesignation: 'Treasurer, JCI Tirupati Innovations',
     chapter: 'JCI Tirupati Innovations',
-    logo: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=150&auto=format&fit=crop&q=80',
+    logo: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=200&auto=format&fit=crop&q=80',
     coverImage: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&auto=format&fit=crop&q=80',
     tagline: 'GST Filings, Corporate Audits, Startup Advisory & Tax Planning',
     description: 'Trusted financial consultancy firm assisting Tirupati businesses with statutory audits, company incorporation, MSME subsidies, and streamlined wealth management.',
@@ -153,12 +138,9 @@ export const BUSINESSES = [
     businessValueGenerated: '₹ 8,75,000',
     connectsReceived: 42,
     productsAndServices: [
-      { name: 'Statutory & Tax Audit', desc: 'Income tax audits, international taxation, and compliance', icon: 'FileText' },
-      { name: 'Company & LLP Incorporation', desc: 'Startup India registration, DPIIT recognition, MSME certification', icon: 'Briefcase' },
-      { name: 'Project Financing & Loan Syndication', desc: 'Detailed Project Reports (DPR) for bank credit facilities', icon: 'Banknote' }
-    ],
-    gallery: [
-      'https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600&auto=format&fit=crop&q=80'
+      { name: 'Statutory & Tax Audit', desc: 'Income tax audits, international taxation, and compliance' },
+      { name: 'Company & LLP Incorporation', desc: 'Startup India registration, DPIIT recognition, MSME certification' },
+      { name: 'Project Financing & Loan Syndication', desc: 'Detailed Project Reports (DPR) for bank credit facilities' }
     ]
   },
   {
@@ -167,9 +149,9 @@ export const BUSINESSES = [
     slug: 'vibrant-solar-tirupati',
     category: 'Manufacturing & Fabrication',
     ownerName: 'Jc. P. Rajesh Varma',
-    ownerDesignation: 'Director (Individual Development), JCI Tirupati Royal',
-    chapter: 'JCI Tirupati Royal',
-    logo: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?w=150&auto=format&fit=crop&q=80',
+    ownerDesignation: 'Vice President, JCI Tirupati Power',
+    chapter: 'JCI Tirupati Power',
+    logo: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?w=200&auto=format&fit=crop&q=80',
     coverImage: 'https://images.unsplash.com/photo-1508873696983-2df5293cb32f?w=1200&auto=format&fit=crop&q=80',
     tagline: 'Rooftop On-Grid & Off-Grid Solar Power Systems with PM Surya Ghar Subsidy',
     description: 'Certified renewable energy EPC contractor providing residential, commercial, and agricultural solar rooftop installations with hassle-free government net metering.',
@@ -186,12 +168,9 @@ export const BUSINESSES = [
     businessValueGenerated: '₹ 22,00,000',
     connectsReceived: 19,
     productsAndServices: [
-      { name: 'Residential Rooftop Solar', desc: '3kW to 10kW systems with 78,000 INR central subsidy assistance', icon: 'Sun' },
-      { name: 'Commercial & Industrial Solar', desc: '50kW+ solar plants reducing commercial electricity tariffs by 80%', icon: 'Factory' },
-      { name: 'Solar Water Heaters & Pumps', desc: 'Heavy duty pressure pump compatible solar heating solutions', icon: 'Droplets' }
-    ],
-    gallery: [
-      'https://images.unsplash.com/photo-1509391365360-2e959784a276?w=600&auto=format&fit=crop&q=80'
+      { name: 'Residential Rooftop Solar', desc: '3kW to 10kW systems with central subsidy assistance' },
+      { name: 'Commercial & Industrial Solar', desc: '50kW+ solar plants reducing electricity tariffs by 80%' },
+      { name: 'Solar Water Heaters & Pumps', desc: 'Heavy duty pressure pump compatible solar heating solutions' }
     ]
   },
   {
@@ -202,7 +181,7 @@ export const BUSINESSES = [
     ownerName: 'Jc. G. Harish Naidu',
     ownerDesignation: 'Vice President (Fellowship), JCI Tirupati Innovations',
     chapter: 'JCI Tirupati Innovations',
-    logo: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=150&auto=format&fit=crop&q=80',
+    logo: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&auto=format&fit=crop&q=80',
     coverImage: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=1200&auto=format&fit=crop&q=80',
     tagline: 'Luxury AC Banquet Halls, Catering & Tirumala Pilgrim Assistance Suites',
     description: 'Sophisticated event venue accommodating 100 to 1,000 guests for business conferences, JCI zone meets, weddings, and premium pilgrim group accommodation.',
@@ -219,12 +198,9 @@ export const BUSINESSES = [
     businessValueGenerated: '₹ 14,50,000',
     connectsReceived: 35,
     productsAndServices: [
-      { name: 'Grand AC Banquet Hall (800 Pax)', desc: 'Acoustic sound, stage lighting, and central air conditioning', icon: 'Users' },
-      { name: 'Authentic South Indian Catering', desc: 'Pure vegetarian traditional festive & wedding menus', icon: 'Utensils' },
-      { name: 'VIP Suite Accommodation', desc: 'Pilgrim family suites with 24/7 Tirumala travel guidance', icon: 'Hotel' }
-    ],
-    gallery: [
-      'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&auto=format&fit=crop&q=80'
+      { name: 'Grand AC Banquet Hall (800 Pax)', desc: 'Acoustic sound, stage lighting, and central air conditioning' },
+      { name: 'Authentic South Indian Catering', desc: 'Pure vegetarian traditional festive & wedding menus' },
+      { name: 'VIP Suite Accommodation', desc: 'Pilgrim family suites with 24/7 Tirumala travel guidance' }
     ]
   }
 ];
@@ -236,15 +212,15 @@ export const CELEBRATIONS = {
       name: 'Jc. B. Naveen Kumar',
       role: 'Director (Youth & Sports)',
       chapter: 'JCI Tirupati Innovations',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
       wishesSent: 42
     },
     {
       id: 'cel-b2',
       name: 'Jc. Ananya Sharma',
       role: 'Charter Member',
-      chapter: 'JCI Tirupati Central',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+      chapter: 'JCI Tirupati Odyssey',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
       wishesSent: 28
     }
   ],
@@ -254,26 +230,26 @@ export const CELEBRATIONS = {
       names: 'Jc. CA M. Swathi Rao & Er. Ramana Rao',
       years: '10th Wedding Anniversary',
       chapter: 'JCI Tirupati Innovations',
-      avatar: 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?w=150&auto=format&fit=crop&q=80',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
       wishesSent: 67
     }
   ]
 };
 
 export const LIVE_CONNECT_STATS = {
-  totalBusinessGeneratedINR: 11845000, // ₹ 1.18 Crore+
+  totalBusinessGeneratedINR: 11845000,
   totalConnectsPassed: 342,
   dealsClosed: 218,
   activeJayceesRegistered: 184,
   approvedBusinesses: 76,
-  participatingChapters: 6
+  participatingChapters: 4
 };
 
 export const RECENT_CONNECT_FEED = [
   {
     id: 'con-1',
     fromChapter: 'JCI Tirupati Innovations',
-    toChapter: 'JCI Tirupati Central',
+    toChapter: 'JCI Tirupati Odyssey',
     fromMember: 'Jc. R. Dinesh Kumar',
     toMember: 'Jc. T. Venkatesh Chowdary',
     category: 'Precast Panels Supply Deal',
@@ -294,7 +270,7 @@ export const RECENT_CONNECT_FEED = [
   },
   {
     id: 'con-3',
-    fromChapter: 'JCI Tirupati Royal',
+    fromChapter: 'JCI Tirupati Power',
     toChapter: 'JCI Tirupati Innovations',
     fromMember: 'Jc. P. Rajesh Varma',
     toMember: 'Jc. G. Harish Naidu',
@@ -311,7 +287,7 @@ export const PILLARS = [
     title: 'Business & Entrepreneurship',
     icon: 'Briefcase',
     tagline: 'Driving local trade, B2B exchange & startup incubation',
-    description: 'Empowering Jaycee entrepreneurs through Business of the Day, Business Expo, mutual referrals, and structured commerce.',
+    description: 'Empowering Jaycee entrepreneurs through Business of the Day, Business Expo, mutual referrals, and structured commerce across 4 Tirupati chapters.',
     stats: '₹1.18+ Cr Trade Generated'
   },
   {
@@ -394,7 +370,7 @@ export const UPCOMING_EVENTS = [
     venue: 'SV University Grounds, Tirupati',
     category: 'Health & Sports',
     pillar: 'Health, Fitness & Well-being',
-    image: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=800&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=80',
     description: 'Join 300+ Jaycees and citizens for a healthy morning run followed by live boxing fitness exhibition matches and free health checks.',
     spotsLeft: 45,
     isMembersOnly: false
@@ -421,7 +397,7 @@ export const PARTNER_BENEFITS = [
     category: 'Dining & Stay',
     offer: 'Flat 20% off on Buffet Dining & 15% on Room Bookings',
     validTill: 'Dec 31, 2026',
-    logo: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=150&auto=format&fit=crop&q=80',
+    logo: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=200&auto=format&fit=crop&q=80',
     terms: 'Valid for all registered Jaycees in Tirupati upon presenting digital ID card.'
   },
   {
@@ -430,7 +406,7 @@ export const PARTNER_BENEFITS = [
     category: 'Diagnostic Health',
     offer: 'Free Complete Blood Picture (CBP) + 25% on Full Body Health Packages',
     validTill: 'Jan 31, 2027',
-    logo: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=150&auto=format&fit=crop&q=80',
+    logo: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=200&auto=format&fit=crop&q=80',
     terms: 'Applicable for Jaycees and their immediate family members across all chapters.'
   },
   {
@@ -439,7 +415,7 @@ export const PARTNER_BENEFITS = [
     category: 'Automobile',
     offer: 'Special Corporate Discount of ₹15,000 + Free 2-Year Extended Warranty',
     validTill: 'Nov 30, 2026',
-    logo: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=150&auto=format&fit=crop&q=80',
+    logo: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=200&auto=format&fit=crop&q=80',
     terms: 'Valid on new vehicle bookings with JCI membership verification.'
   }
 ];
@@ -450,7 +426,7 @@ export const PENDING_JAYCEE_APPLICATIONS = [
     fullName: 'Jc. S. Karthik Reddy',
     phone: '+91 98491 88231',
     email: 'karthik.reddy@gmail.com',
-    chapter: 'JCI Tirupati Central',
+    chapter: 'JCI Tirupati Odyssey',
     membershipId: 'JCI-IN-2026-9812',
     designation: 'Member',
     businessName: 'Reddy Logistics & Warehousing',
@@ -463,7 +439,7 @@ export const PENDING_JAYCEE_APPLICATIONS = [
     fullName: 'Jc. P. Sahithi Priya',
     phone: '+91 97012 33451',
     email: 'sahithi.priya@outlook.com',
-    chapter: 'JCI Tirupati Royal',
+    chapter: 'JCI Tirupati Power',
     membershipId: 'JCI-IN-2025-4421',
     designation: 'Director (Programs)',
     businessName: 'Aura Interior Architecture',
@@ -471,4 +447,12 @@ export const PENDING_JAYCEE_APPLICATIONS = [
     appliedDate: 'Yesterday at 06:15 PM',
     status: 'PENDING'
   }
+];
+
+export const SHOWCASE_SCHEDULE = [
+  { date: 'Today (Oct 4)', businessId: 'biz-1', businessName: 'Sri Krishna Soft Solutions', chapter: 'JCI Tirupati Innovations', status: 'ACTIVE_TODAY' },
+  { date: 'Tomorrow (Oct 5)', businessId: 'biz-2', businessName: 'Balaji Ortho & Trauma Care Clinic', chapter: 'JCI Tirupati', status: 'SCHEDULED' },
+  { date: 'Oct 6, 2026', businessId: 'biz-3', businessName: 'Saptagiri Infra & Precast Developers', chapter: 'JCI Tirupati Odyssey', status: 'SCHEDULED' },
+  { date: 'Oct 7, 2026', businessId: 'biz-5', businessName: 'Vibrant Solar & Renewable Energies', chapter: 'JCI Tirupati Power', status: 'SCHEDULED' },
+  { date: 'Oct 8, 2026', businessId: 'biz-4', businessName: 'Seven Hills Chartered & Tax Advisors', chapter: 'JCI Tirupati Innovations', status: 'SCHEDULED' }
 ];
