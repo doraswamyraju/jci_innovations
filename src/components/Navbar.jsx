@@ -12,23 +12,22 @@ import {
   Cake, 
   Phone, 
   Award, 
-  LayoutDashboard, 
-  ChevronDown 
+  LayoutDashboard 
 } from 'lucide-react';
 import JciLogo from './JciLogo';
 
-export default function Navbar({ onOpenRegister, onOpenAdminQueue, onOpenFullAdmin, pendingCount = 2 }) {
+export default function Navbar({ onOpenRegister, onOpenFullAdmin, pendingCount = 2 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header style={{ position: 'sticky', top: 0, zIndex: 900, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 900, boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
       {/* ROW 1: TOP JCI UTILITY & IMPACT STRIP */}
       <div style={{
-        background: 'linear-gradient(90deg, #004578 0%, #005696 50%, #0284c7 100%)',
+        background: 'linear-gradient(90deg, #004578 0%, #005696 60%, #0284c7 100%)',
         color: '#ffffff',
-        fontSize: '0.8rem',
+        fontSize: '0.82rem',
         fontWeight: '600',
-        padding: '6px 0',
+        padding: '7px 0',
         borderBottom: '1px solid rgba(255, 255, 255, 0.15)'
       }}>
         <div className="container" style={{
@@ -38,25 +37,16 @@ export default function Navbar({ onOpenRegister, onOpenAdminQueue, onOpenFullAdm
           flexWrap: 'wrap',
           gap: '10px'
         }}>
-          {/* Left: 4 LOs Ticker */}
+          {/* Left: Organization Tag */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{
-              background: '#f59e0b',
-              color: '#1a0e00',
-              fontSize: '0.68rem',
-              fontWeight: '900',
-              padding: '1px 6px',
-              borderRadius: '4px'
-            }}>
-              4 LOs
-            </span>
+            <Award size={14} color="#f59e0b" />
             <span style={{ color: '#e0f2fe' }}>
-              <strong>Tirupati Jaycees:</strong> Innovations (Host) • Tirupati • Odyssey • Power
+              JCI India • Zone IV | <strong>JCI Tirupati Innovations</strong>
             </span>
           </div>
 
-          {/* Right: Connect Stats, Celebrations & Helpline */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }} className="top-bar-right">
+          {/* Right: Quick Links */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '22px' }} className="top-bar-right">
             <a href="#connect-tracker" style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#fde68a' }}>
               <TrendingUp size={14} color="#f59e0b" />
               <span>₹1.18+ Cr B2B Trade</span>
@@ -64,7 +54,7 @@ export default function Navbar({ onOpenRegister, onOpenAdminQueue, onOpenFullAdm
 
             <a href="#highlights" style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#fbcfe8' }}>
               <Cake size={14} color="#f472b6" />
-              <span>Celebrations Today</span>
+              <span>Today's Celebrations</span>
             </a>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#cbd5e1' }}>
@@ -79,7 +69,7 @@ export default function Navbar({ onOpenRegister, onOpenAdminQueue, onOpenFullAdm
       <div style={{
         background: '#ffffff',
         borderBottom: '1px solid #e2e8f0',
-        height: '78px',
+        height: '82px',
         display: 'flex',
         alignItems: 'center'
       }}>
@@ -91,11 +81,11 @@ export default function Navbar({ onOpenRegister, onOpenAdminQueue, onOpenFullAdm
         }}>
           {/* Official JCI Tirupati Innovations Logo */}
           <a href="#" style={{ display: 'flex', alignItems: 'center' }} title="JCI Tirupati Innovations">
-            <JciLogo height={48} />
+            <JciLogo height={54} />
           </a>
 
           {/* Center Navigation Links */}
-          <nav style={{ display: 'none', alignItems: 'center', gap: '26px' }} className="main-nav-links">
+          <nav style={{ display: 'none', alignItems: 'center', gap: '28px' }} className="main-nav-links">
             <a href="#highlights" className="nav-link-item">
               Daily Spotlight
             </a>
@@ -126,7 +116,7 @@ export default function Navbar({ onOpenRegister, onOpenAdminQueue, onOpenFullAdm
                 background: '#0f172a',
                 color: '#ffffff',
                 border: 'none',
-                padding: '9px 16px',
+                padding: '10px 16px',
                 borderRadius: '8px',
                 fontSize: '0.85rem',
                 fontWeight: '700',
@@ -148,7 +138,8 @@ export default function Navbar({ onOpenRegister, onOpenAdminQueue, onOpenFullAdm
                   fontSize: '0.68rem',
                   fontWeight: '900',
                   padding: '2px 6px',
-                  borderRadius: '99px'
+                  borderRadius: '99px',
+                  marginLeft: '2px'
                 }}>
                   {pendingCount}
                 </span>

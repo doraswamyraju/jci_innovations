@@ -5,13 +5,12 @@ import {
   Users, 
   ArrowRight, 
   Sparkles, 
-  ShieldCheck, 
   Coins, 
   CheckCircle2, 
   HeartHandshake, 
   Award 
 } from 'lucide-react';
-import { LIVE_CONNECT_STATS, TIRUPATI_CHAPTERS } from '../data/mockData';
+import { LIVE_CONNECT_STATS } from '../data/mockData';
 
 export default function Hero({ onOpenRegister, onOpenLogConnect, onSelectBusiness, businessOfTheDay }) {
   return (
@@ -52,17 +51,17 @@ export default function Hero({ onOpenRegister, onOpenLogConnect, onSelectBusines
           gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)',
           gap: '48px',
           alignItems: 'center',
-          marginBottom: '50px'
+          marginBottom: '20px'
         }} className="hero-main-grid">
           
           {/* Left Column: Vision & Calls to Action */}
           <div>
-            {/* Top Pill */}
+            {/* Top Tag */}
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '8px 16px',
+              padding: '6px 14px',
               borderRadius: '99px',
               background: 'rgba(255, 255, 255, 0.08)',
               border: '1px solid rgba(255, 255, 255, 0.15)',
@@ -70,37 +69,28 @@ export default function Hero({ onOpenRegister, onOpenLogConnect, onSelectBusines
               marginBottom: '22px',
               fontSize: '0.85rem'
             }}>
-              <span style={{
-                background: '#f59e0b',
-                color: '#000',
-                fontSize: '0.72rem',
-                fontWeight: '900',
-                padding: '2px 8px',
-                borderRadius: '99px'
-              }}>
-                4th LO IN TIRUPATI
-              </span>
-              <span style={{ color: '#e2e8f0', fontWeight: '600' }}>
-                Unifying All 4 Jaycee Chapters
+              <Sparkles size={15} color="#f59e0b" />
+              <span style={{ color: '#f8fafc', fontWeight: '700' }}>
+                Developing Leaders • Empowering Communities
               </span>
             </div>
 
             {/* Main Headline */}
             <h1 style={{
-              fontSize: 'clamp(2.4rem, 4.5vw, 3.7rem)',
+              fontSize: 'clamp(2.4rem, 4.5vw, 3.6rem)',
               fontWeight: '800',
               lineHeight: '1.15',
               letterSpacing: '-0.025em',
               marginBottom: '20px',
               color: '#ffffff'
             }}>
-              Uniting Tirupati Jaycees. <br />
+              Developing Leaders. <br />
               <span style={{
                 background: 'linear-gradient(135deg, #38bdf8 0%, #60a5fa 40%, #f59e0b 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
-                Accelerating Local Trade & Community Impact.
+                Accelerating Local Business Trade & Impact.
               </span>
             </h1>
 
@@ -110,16 +100,16 @@ export default function Hero({ onOpenRegister, onOpenLogConnect, onSelectBusines
               color: '#cbd5e1',
               lineHeight: '1.7',
               marginBottom: '32px',
-              maxWidth: '620px'
+              maxWidth: '600px'
             }}>
-              The digital gateway built by <strong>JCI Tirupati Innovations</strong> connecting members across all 4 Local Organizations in Tirupati. Showcase your enterprise, generate high-trust referrals, and celebrate collective achievements.
+              The official digital ecosystem for <strong>JCI Tirupati Innovations</strong>. Discover verified member-owned enterprises, pass high-trust business connects, celebrate milestones, and participate in transformative community initiatives.
             </p>
 
             {/* CTAs */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
               <a href="#directory" className="btn btn-primary" style={{ padding: '14px 26px', fontSize: '0.98rem' }}>
                 <Building2 size={18} />
-                <span>Explore Jaycee Businesses</span>
+                <span>Explore Member Businesses</span>
               </a>
 
               <button 
@@ -128,7 +118,7 @@ export default function Hero({ onOpenRegister, onOpenLogConnect, onSelectBusines
                 style={{ padding: '14px 26px', fontSize: '0.98rem' }}
               >
                 <Users size={18} />
-                <span>Register as Tirupati Jaycee</span>
+                <span>Register as Jaycee</span>
               </button>
 
               <button 
@@ -139,32 +129,6 @@ export default function Hero({ onOpenRegister, onOpenLogConnect, onSelectBusines
                 <TrendingUp size={16} color="#f59e0b" />
                 <span>Pass Connect / Log Deal</span>
               </button>
-            </div>
-
-            {/* 4 LOs Badges Strip */}
-            <div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px', fontWeight: '700' }}>
-                Participating Local Organizations (4 LOs in Tirupati):
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {TIRUPATI_CHAPTERS.map(ch => (
-                  <span key={ch.id} style={{
-                    background: ch.isHost ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-                    border: ch.isHost ? '1px solid #f59e0b' : '1px solid rgba(255, 255, 255, 0.15)',
-                    color: ch.isHost ? '#fde68a' : '#e2e8f0',
-                    fontSize: '0.8rem',
-                    fontWeight: ch.isHost ? '800' : '600',
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px'
-                  }}>
-                    {ch.isHost && <Award size={13} color="#f59e0b" />}
-                    {ch.name}
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -235,7 +199,7 @@ export default function Hero({ onOpenRegister, onOpenLogConnect, onSelectBusines
                 <div style={{ fontSize: '1.35rem', fontWeight: '800', color: '#38bdf8', marginTop: '2px' }}>
                   {LIVE_CONNECT_STATS.totalConnectsPassed}+
                 </div>
-                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Across 4 LOs</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Qualified Referrals</div>
               </div>
 
               <div style={{
