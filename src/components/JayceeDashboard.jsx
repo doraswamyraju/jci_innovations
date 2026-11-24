@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   TrendingUp, 
@@ -41,10 +41,14 @@ import {
   LayoutDashboard,
   LogOut,
   Bell,
-  CheckSquare
+  CheckSquare,
+  MapPin,
+  MessageCircle,
+  FileSpreadsheet
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import JciLogo from './JciLogo';
+import { loadStoredData, saveStoredData, exportToCSV, formatINR } from '../utils/storage';
 
 import { 
   DEMO_USERS, 
@@ -105,15 +109,24 @@ export default function JayceeDashboard({
   const [activeTab, setActiveTab] = useState('leads'); // 'leads' | 'catalog' | 'vcard' | 'flyers' | 'assets' | 'accounts' | 'handover' | 'showcase' | 'calendar' | 'users'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Dynamic state
-  const [leadsList, setLeadsList] = useState(INITIAL_LEADS_PIPELINE);
-  const [assetsList, setAssetsList] = useState(INITIAL_CHAPTER_ASSETS);
-  const [accountsList, setAccountsList] = useState(INITIAL_ACCOUNTS_LEDGER);
-  const [tenuresList, setTenuresList] = useState(PRESIDENTIAL_TENURES);
-  const [calendarList, setCalendarList] = useState(CHAPTER_CALENDAR_ITEMS);
-  const [scheduleList, setScheduleList] = useState(SHOWCASE_SCHEDULE);
+  // Dynamic state with production-grade LocalStorage persistence
+  const [leadsList, setLeadsList] = useState(() => loadStoredData('jci_leads', INITIAL_LEADS_PIPELINE));
+  const [assetsList, setAssetsList] = useState(() => loadStoredData('jci_assets', INITIAL_CHAPTER_ASSETS));
+  const [accountsList, setAccountsList] = useState(() => loadStoredData('jci_accounts', INITIAL_ACCOUNTS_LEDGER));
+  const [tenuresList, setTenuresList] = useState(() => loadStoredData('jci_tenures', PRESIDENTIAL_TENURES));
+  const [calendarList, setCalendarList] = useState(() => loadStoredData('jci_calendar', CHAPTER_CALENDAR_ITEMS));
+  const [scheduleList, setScheduleList] = useState(() => loadStoredData('jci_showcase', SHOWCASE_SCHEDULE));
   const [userProducts, setUserProducts] = useState(currentUser.products || []);
-  const [usersList, setUsersList] = useState(DEMO_USERS);
+  const [usersList, setUsersList] = useState(() => loadStoredData('jci_users', DEMO_USERS));
+
+  // Sync state changes to localStorage
+  useEffect(() => { saveStoredData('jci_leads', leadsList); }, [leadsList]);
+  useEffect(() => { saveStoredData('jci_assets', assetsList); }, [assetsList]);
+  useEffect(() => { saveStoredData('jci_accounts', accountsList); }, [accountsList]);
+  useEffect(() => { saveStoredData('jci_tenures', tenuresList); }, [tenuresList]);
+  useEffect(() => { saveStoredData('jci_calendar', calendarList); }, [calendarList]);
+  useEffect(() => { saveStoredData('jci_showcase', scheduleList); }, [scheduleList]);
+  useEffect(() => { saveStoredData('jci_users', usersList); }, [usersList]);
 
   // Users management state
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -127,14 +140,65 @@ export default function JayceeDashboard({
     designation: 'Active Member / Entrepreneur',
     password: 'Password@2027',
     businessName: '',
-    businessCategory: 'Technology & Software'
+    businessCategory: 'Technology & Software',
+    bloodGroup: 'B+ve',
+    businessAddress: 'Tirupati, AP, India'
   });
+
+  // Edit User Modal State
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
 
   // UI state
   const [toastMessage, setToastMessage] = useState('');
   const [cardThemeId, setCardThemeId] = useState(currentUser.cardTheme || 'royal-blue');
   const [tenantActive, setTenantActive] = useState(currentUser.tenantEnabled || false);
   const [copiedLink, setCopiedLink] = useState(false);
+
+  // Calendar filter and event modals
+  const [calendarFilter, setCalendarFilter] = useState('ALL');
+  const [showAddCalendarModal, setShowAddCalendarModal] = useState(false);
+  const [newCalendarForm, setNewCalendarForm] = useState({
+    title: '',
+    category: 'GBM',
+    date: '2026-10-25',
+    time: '06:30 PM - 08:30 PM',
+    venue: 'Hotel Bliss / Minerva Grand, Tirupati',
+    description: '',
+    dressCode: 'Jaycee Formal (with Lapel Pin)',
+    rsvpStatus: 'RSVP OPEN'
+  });
+
+  // WhatsApp Broadcast Modal State
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+  const [broadcastEvent, setBroadcastEvent] = useState(null);
+
+  // Assets Modals
+  const [showAddAssetModal, setShowAddAssetModal] = useState(false);
+  const [newAssetForm, setNewAssetForm] = useState({
+    name: '',
+    category: 'Regalia & Badges',
+    custodian: '',
+    condition: 'Excellent',
+    valuationINR: 15000,
+    location: 'Chapter Secretariat, Tirupati',
+    notes: 'Official inventory item'
+  });
+
+  const [showTransferAssetModal, setShowTransferAssetModal] = useState(false);
+  const [transferAssetTarget, setTransferAssetTarget] = useState(null);
+  const [transferCustodian, setTransferCustodian] = useState('');
+
+  // Accounts & Treasury Modal
+  const [showAddAccountModal, setShowAddAccountModal] = useState(false);
+  const [newAccountForm, setNewAccountForm] = useState({
+    category: 'Membership Dues',
+    type: 'INCOME',
+    amountINR: '',
+    receiptVoucherNo: `VCH-${Math.floor(100 + Math.random() * 900)}`,
+    description: '',
+    date: new Date().toISOString().slice(0, 10)
+  });
 
   // Forms modals
   const [showAddLeadModal, setShowAddLeadModal] = useState(false);
@@ -332,18 +396,256 @@ export default function JayceeDashboard({
     showToast('Product removed.');
   };
 
-  const handleApproveVoucher = (voucherId) => {
-    setAccountsList(prev => prev.map(item => {
-      if (item.id === voucherId) {
+  // Edit User Handler
+  const handleEditUserSubmit = (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setUsersList(prev => prev.map(u => u.id === editingUser.id ? editingUser : u));
+    setShowEditUserModal(false);
+    showToast(`✓ Updated profile for ${editingUser.fullName}`);
+  };
+
+  const handleDeleteUser = (userId) => {
+    if (window.confirm('Are you sure you want to remove this user from the chapter directory?')) {
+      setUsersList(prev => prev.filter(u => u.id !== userId));
+      showToast('User removed from chapter register.');
+    }
+  };
+
+  // Asset Handlers
+  const handleAddAssetSubmit = (e) => {
+    e.preventDefault();
+    if (!newAssetForm.name) return;
+    const newAsset = {
+      id: `ast-${Date.now()}`,
+      name: newAssetForm.name,
+      category: newAssetForm.category,
+      custodian: newAssetForm.custodian || `${currentUser.fullName} (${currentUser.designation})`,
+      condition: newAssetForm.condition,
+      valuationINR: Number(newAssetForm.valuationINR) || 10000,
+      location: newAssetForm.location || 'Chapter Secretariat, Tirupati',
+      lastAudited: 'Today (Newly Registered)',
+      notes: newAssetForm.notes || 'Official chapter property'
+    };
+    setAssetsList([newAsset, ...assetsList]);
+    setShowAddAssetModal(false);
+    setNewAssetForm({
+      name: '',
+      category: 'Regalia & Badges',
+      custodian: '',
+      condition: 'Excellent',
+      valuationINR: 15000,
+      location: 'Chapter Secretariat, Tirupati',
+      notes: 'Official inventory item'
+    });
+    showToast(`✓ Asset "${newAsset.name}" registered into Chapter Assets Register!`);
+  };
+
+  const handleDeleteAsset = (assetId) => {
+    if (window.confirm('Delete this asset from chapter inventory?')) {
+      setAssetsList(prev => prev.filter(a => a.id !== assetId));
+      showToast('Asset removed from inventory.');
+    }
+  };
+
+  const handleTransferAssetSubmit = (e) => {
+    e.preventDefault();
+    if (!transferAssetTarget || !transferCustodian) return;
+    setAssetsList(prev => prev.map(ast => {
+      if (ast.id === transferAssetTarget.id) {
         return {
-          ...item,
-          status: 'APPROVED',
-          approvedBy: `${currentUser.fullName} (${currentUser.designation})`
+          ...ast,
+          custodian: transferCustodian,
+          lastAudited: 'Today (Live Handover by ' + currentUser.fullName.split(' ')[1] + ')'
         };
       }
-      return item;
+      return ast;
     }));
-    showToast('✓ Payment voucher approved with Presidential sign-off!');
+    setShowTransferAssetModal(false);
+    setTransferAssetTarget(null);
+    showToast(`✓ Asset custody transferred to ${transferCustodian}!`);
+  };
+
+  // Accounts & Treasury Handlers
+  const handleAddAccountSubmit = (e) => {
+    e.preventDefault();
+    if (!newAccountForm.amountINR || !newAccountForm.description) return;
+    const newEntry = {
+      id: `acc-${Date.now()}`,
+      date: newAccountForm.date || new Date().toISOString().slice(0, 10),
+      receiptVoucherNo: newAccountForm.receiptVoucherNo || `VCH-${Math.floor(100 + Math.random() * 900)}`,
+      category: newAccountForm.category,
+      type: newAccountForm.type,
+      amountINR: Number(newAccountForm.amountINR) || 0,
+      status: isPresident || isSuperAdmin ? 'APPROVED' : 'PENDING_PRESIDENT_APPROVAL',
+      approvedBy: isPresident || isSuperAdmin ? `${currentUser.fullName} (${currentUser.designation})` : null,
+      description: newAccountForm.description
+    };
+    setAccountsList([newEntry, ...accountsList]);
+    setShowAddAccountModal(false);
+    setNewAccountForm({
+      category: 'Membership Dues',
+      type: 'INCOME',
+      amountINR: '',
+      receiptVoucherNo: `VCH-${Math.floor(100 + Math.random() * 900)}`,
+      description: '',
+      date: new Date().toISOString().slice(0, 10)
+    });
+    if (newEntry.status === 'APPROVED') {
+      showToast(`✓ Transaction ₹${newEntry.amountINR.toLocaleString()} recorded and approved!`);
+    } else {
+      showToast(`✓ Voucher ₹${newEntry.amountINR.toLocaleString()} submitted for Presidential Dual-Signoff!`);
+    }
+  };
+
+  const handleRejectVoucher = (voucherId) => {
+    if (window.confirm('Reject and cancel this financial voucher?')) {
+      setAccountsList(prev => prev.filter(item => item.id !== voucherId));
+      showToast('Voucher rejected and cancelled.');
+    }
+  };
+
+  // Calendar Event Handlers
+  const handleAddCalendarSubmit = (e) => {
+    e.preventDefault();
+    if (!newCalendarForm.title || !newCalendarForm.date) return;
+    const newEvent = {
+      id: `cal-${Date.now()}`,
+      title: newCalendarForm.title,
+      category: newCalendarForm.category,
+      date: newCalendarForm.date,
+      time: newCalendarForm.time || '06:30 PM - 08:30 PM',
+      venue: newCalendarForm.venue || 'Hotel Bliss, Tirupati',
+      description: newCalendarForm.description || 'Chapter official event',
+      dressCode: newCalendarForm.dressCode || 'Jaycee Formal (with Lapel Pin)',
+      rsvpStatus: 'RSVP OPEN',
+      confirmedCount: 12
+    };
+    setCalendarList([newEvent, ...calendarList]);
+    setShowAddCalendarModal(false);
+    setNewCalendarForm({
+      title: '',
+      category: 'GBM',
+      date: '2026-10-25',
+      time: '06:30 PM - 08:30 PM',
+      venue: 'Hotel Bliss / Minerva Grand, Tirupati',
+      description: '',
+      dressCode: 'Jaycee Formal (with Lapel Pin)',
+      rsvpStatus: 'RSVP OPEN'
+    });
+    showToast(`✓ Event "${newEvent.title}" added to Chapter Calendar!`);
+  };
+
+  const handleDeleteCalendarEvent = (eventId) => {
+    if (window.confirm('Remove this event from chapter calendar?')) {
+      setCalendarList(prev => prev.filter(c => c.id !== eventId));
+      showToast('Event removed.');
+    }
+  };
+
+  const handleCopyBroadcastText = (event) => {
+    const text = `🔷 *JCI TIRUPATI INNOVATIONS* 🔷\n` +
+      `📅 *Official Chapter Meeting & Event Notice*\n\n` +
+      `📌 *Event:* ${event.title}\n` +
+      `🏷 *Category:* ${event.category}\n` +
+      `📆 *Date:* ${event.date}\n` +
+      `⏰ *Time:* ${event.time}\n` +
+      `📍 *Venue:* ${event.venue}\n` +
+      `👔 *Dress Code:* ${event.dressCode}\n\n` +
+      `📝 *Agenda & Notes:* ${event.description || 'All Jaycee members, officers and partners are cordially invited to participate.'}\n\n` +
+      `🤝 *Leadership:* \n` +
+      `Jc. Er. P. Ramachandra Raju (President 2026)\n` +
+      `Jc. Adv. S. Venkat Reddy (Secretary 2026)\n\n` +
+      `🔗 *RSVP / Details:* https://innovations.sriddha.com`;
+    navigator.clipboard.writeText(text);
+    showToast('✓ WhatsApp Broadcast invite copied to clipboard!');
+  };
+
+  // CSV Exporters
+  const handleExportUsersCSV = () => {
+    const headers = [
+      { label: 'Name', key: 'fullName' },
+      { label: 'Membership ID', key: 'membershipId' },
+      { label: 'Role', key: 'role' },
+      { label: 'Portfolio / Designation', key: 'designation' },
+      { label: 'Email', key: 'email' },
+      { label: 'Phone', key: 'phone' },
+      { label: 'Business Name', key: 'businessName' },
+      { label: 'Business Category', key: 'businessCategory' },
+      { label: 'Blood Group', key: 'bloodGroup' },
+      { label: 'Status', key: 'status' }
+    ];
+    exportToCSV('JCI_Innovations_Members_Roster', headers, usersList);
+    showToast('✓ Members Roster exported to CSV!');
+  };
+
+  const handleExportLeadsCSV = () => {
+    const headers = [
+      { label: 'Lead Title', key: 'title' },
+      { label: 'Client Name', key: 'clientName' },
+      { label: 'Phone', key: 'clientPhone' },
+      { label: 'Source', key: 'source' },
+      { label: 'Assigned To', key: 'assignedToName' },
+      { label: 'Stage', key: 'stage' },
+      { label: 'Estimated Value (INR)', key: 'estimatedValueINR' },
+      { label: 'Actual Closed Value (INR)', key: 'actualClosedValueINR' },
+      { label: 'Follow Up Date', key: 'nextFollowUpDate' },
+      { label: 'Notes', key: 'notes' }
+    ];
+    exportToCSV('JCI_Innovations_Leads_CRM', headers, leadsList);
+    showToast('✓ Leads & Referrals exported to CSV!');
+  };
+
+  const handleExportAccountsCSV = () => {
+    const headers = [
+      { label: 'Date', key: 'date' },
+      { label: 'Voucher No', key: 'receiptVoucherNo' },
+      { label: 'Category', key: 'category' },
+      { label: 'Type', key: 'type' },
+      { label: 'Amount (INR)', key: 'amountINR' },
+      { label: 'Approval Status', key: 'status' },
+      { label: 'Approved By', key: 'approvedBy' },
+      { label: 'Description', key: 'description' }
+    ];
+    exportToCSV('JCI_Innovations_Treasury_Ledger', headers, accountsList);
+    showToast('✓ Treasury Ledger exported to CSV!');
+  };
+
+  const handleExportAssetsCSV = () => {
+    const headers = [
+      { label: 'Asset Name', key: 'name' },
+      { label: 'Category', key: 'category' },
+      { label: 'Custodian', key: 'custodian' },
+      { label: 'Condition', key: 'condition' },
+      { label: 'Valuation (INR)', key: 'valuationINR' },
+      { label: 'Location', key: 'location' },
+      { label: 'Last Audited', key: 'lastAudited' },
+      { label: 'Notes', key: 'notes' }
+    ];
+    exportToCSV('JCI_Innovations_Assets_Register', headers, assetsList);
+    showToast('✓ Assets Register exported to CSV!');
+  };
+
+  const handleExportCalendarCSV = () => {
+    const headers = [
+      { label: 'Event Title', key: 'title' },
+      { label: 'Category', key: 'category' },
+      { label: 'Date', key: 'date' },
+      { label: 'Time', key: 'time' },
+      { label: 'Venue', key: 'venue' },
+      { label: 'Dress Code', key: 'dressCode' },
+      { label: 'RSVP Status', key: 'rsvpStatus' },
+      { label: 'Description', key: 'description' }
+    ];
+    exportToCSV('JCI_Innovations_Chapter_Calendar', headers, calendarList);
+    showToast('✓ Chapter Calendar exported to CSV!');
+  };
+
+  const handleDeleteLead = (leadId) => {
+    if (window.confirm('Delete this lead from pipeline?')) {
+      setLeadsList(prev => prev.filter(l => l.id !== leadId));
+      showToast('Lead removed.');
+    }
   };
 
   const handleUpdateAssetCustodian = (assetId, newCustodian, newCondition) => {
@@ -1052,26 +1354,47 @@ END:VCARD`;
                   </p>
                 </div>
 
-                <button
-                  onClick={() => setShowAddLeadModal(true)}
-                  style={{
-                    background: '#005696',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '9px 16px',
-                    borderRadius: '8px',
-                    fontSize: '0.82rem',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 2px 6px rgba(0, 86, 150, 0.25)'
-                  }}
-                >
-                  <PlusCircle size={16} />
-                  <span>Log New Lead / Pass Referral</span>
-                </button>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={handleExportLeadsCSV}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#0f172a',
+                      border: '1px solid #cbd5e1',
+                      padding: '9px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Download size={15} />
+                    <span>Export CSV</span>
+                  </button>
+                  <button
+                    onClick={() => setShowAddLeadModal(true)}
+                    style={{
+                      background: '#005696',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '9px 16px',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(0, 86, 150, 0.25)'
+                    }}
+                  >
+                    <PlusCircle size={16} />
+                    <span>Log New Lead / Pass Referral</span>
+                  </button>
+                </div>
               </div>
 
               {/* Kanban / Cards Grid */}
@@ -1194,6 +1517,23 @@ END:VCARD`;
                           <option value="CLOSED_WON">Closed Won (Success!)</option>
                           <option value="CLOSED_LOST">Closed Lost</option>
                         </select>
+                        <button
+                          onClick={() => handleDeleteLead(lead.id)}
+                          style={{
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            border: '1px solid #fecaca',
+                            borderRadius: '8px',
+                            padding: '6px 8px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                          title="Delete Lead"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </div>
                   );
@@ -1778,6 +2118,29 @@ END:VCARD`;
 
                   <button
                     onClick={() => {
+                      window.print();
+                    }}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#0f172a',
+                      border: '1px solid #cbd5e1',
+                      padding: '9px',
+                      borderRadius: '8px',
+                      fontSize: '0.84rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <Download size={16} />
+                    <span>Print / Save HD Flyer</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
                       const text = encodeURIComponent(`🎉 JCI Tirupati Innovations wishes ${flyerMemberName} a very Happy ${flyerType}! 🎂💐\n\n"${flyerCustomWish}"`);
                       window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
                     }}
@@ -1893,6 +2256,217 @@ END:VCARD`;
           )}
 
           {/* ===================================================================
+              VIEW: CHAPTER CALENDAR & SCHEDULED ALERTS
+             =================================================================== */}
+          {activeTab === 'calendar' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                padding: '20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '14px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+              }}>
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
+                    Chapter Calendar & Scheduled Alerts
+                  </h2>
+                  <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
+                    Official schedule of General Body Meetings (GBM), Board Meets, Business Conclaves, and Fellowships.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={handleExportCalendarCSV}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#0f172a',
+                      border: '1px solid #cbd5e1',
+                      padding: '9px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Download size={15} />
+                    <span>Export CSV</span>
+                  </button>
+                  {canManageChapter && (
+                    <button
+                      onClick={() => setShowAddCalendarModal(true)}
+                      style={{
+                        background: '#005696',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '9px 16px',
+                        borderRadius: '8px',
+                        fontSize: '0.82rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 6px rgba(0, 86, 150, 0.25)'
+                      }}
+                    >
+                      <PlusCircle size={16} />
+                      <span>Schedule Chapter Event</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Event Filter Pills */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {['ALL', 'GBM', 'BOARD_MEETING', 'TRAINING', 'FELLOWSHIP', 'COMMUNITY'].map(cat => (
+                  <button
+                    key={cat}
+                    onClick={() => setCalendarFilter(cat)}
+                    style={{
+                      background: calendarFilter === cat ? '#005696' : '#ffffff',
+                      color: calendarFilter === cat ? '#ffffff' : '#475569',
+                      border: '1px solid ' + (calendarFilter === cat ? '#005696' : '#cbd5e1'),
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: '700',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {cat.replace('_', ' ')}
+                  </button>
+                ))}
+              </div>
+
+              {/* Event Cards Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+                {calendarList
+                  .filter(ev => calendarFilter === 'ALL' || ev.category === calendarFilter)
+                  .map(event => (
+                    <div
+                      key={event.id}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <span style={{
+                          background: '#e0f2fe',
+                          color: '#0369a1',
+                          fontSize: '0.72rem',
+                          fontWeight: '800',
+                          padding: '3px 10px',
+                          borderRadius: '8px',
+                          textTransform: 'uppercase'
+                        }}>
+                          {event.category.replace('_', ' ')}
+                        </span>
+                        <span style={{
+                          background: '#dcfce7',
+                          color: '#15803d',
+                          fontSize: '0.7rem',
+                          fontWeight: '700',
+                          padding: '3px 8px',
+                          borderRadius: '8px'
+                        }}>
+                          {event.rsvpStatus || 'RSVP OPEN'}
+                        </span>
+                      </div>
+
+                      <h4 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                        {event.title}
+                      </h4>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.8rem', color: '#475569' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                          <Calendar size={15} color="#005696" />
+                          <strong>{event.date}</strong> • {event.time}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                          <MapPin size={15} color="#d97706" />
+                          <span>{event.venue}</span>
+                        </div>
+                        {event.dressCode && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '0.74rem', color: '#64748b' }}>
+                            <span>👔 Dress Code: <strong>{event.dressCode}</strong></span>
+                          </div>
+                        )}
+                      </div>
+
+                      <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0, lineHeight: '1.4' }}>
+                        {event.description}
+                      </p>
+
+                      <div style={{
+                        marginTop: 'auto',
+                        paddingTop: '12px',
+                        borderTop: '1px solid #f1f5f9',
+                        display: 'flex',
+                        gap: '8px'
+                      }}>
+                        <button
+                          onClick={() => handleCopyBroadcastText(event)}
+                          style={{
+                            flex: 1,
+                            background: '#22c55e',
+                            color: '#ffffff',
+                            border: 'none',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            fontSize: '0.76rem',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          <MessageCircle size={14} />
+                          <span>WhatsApp Broadcast</span>
+                        </button>
+                        {canManageChapter && (
+                          <button
+                            onClick={() => handleDeleteCalendarEvent(event.id)}
+                            style={{
+                              background: '#f1f5f9',
+                              color: '#dc2626',
+                              border: '1px solid #e2e8f0',
+                              padding: '8px',
+                              borderRadius: '8px',
+                              fontSize: '0.76rem',
+                              cursor: 'pointer'
+                            }}
+                            title="Delete Event"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* ===================================================================
               VIEW 5: CHAPTER ASSETS REGISTER
              =================================================================== */}
           {activeTab === 'assets' && (
@@ -1917,15 +2491,60 @@ END:VCARD`;
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '8px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                  <div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>TOTAL ASSETS</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#005696' }}>{assetsList.length} Items</div>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '8px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                    <div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b' }}>TOTAL ASSETS</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#005696' }}>{assetsList.length} Items</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b' }}>VALUATION</div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#059669' }}>₹ {assetsList.reduce((a, b) => a + b.valuationINR, 0).toLocaleString()}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>VALUATION</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#059669' }}>₹ {assetsList.reduce((a, b) => a + b.valuationINR, 0).toLocaleString()}</div>
-                  </div>
+
+                  <button
+                    onClick={handleExportAssetsCSV}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#0f172a',
+                      border: '1px solid #cbd5e1',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    <Download size={15} />
+                    <span>Export CSV</span>
+                  </button>
+
+                  {canManageAssets && (
+                    <button
+                      onClick={() => setShowAddAssetModal(true)}
+                      style={{
+                        background: '#005696',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '9px 14px',
+                        borderRadius: '8px',
+                        fontSize: '0.82rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 6px rgba(0, 86, 150, 0.25)'
+                      }}
+                    >
+                      <PlusCircle size={16} />
+                      <span>Register Asset</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1981,22 +2600,43 @@ END:VCARD`;
                     </p>
 
                     {canManageAssets && (
-                      <button
-                        onClick={() => handleUpdateAssetCustodian(asset.id, `${currentUser.fullName} (${currentUser.designation})`, asset.condition)}
-                        style={{
-                          marginTop: 'auto',
-                          background: '#f1f5f9',
-                          color: '#0f172a',
-                          border: '1px solid #cbd5e1',
-                          padding: '7px 10px',
-                          borderRadius: '6px',
-                          fontSize: '0.74rem',
-                          fontWeight: '600',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        Transfer Custody to Me
-                      </button>
+                      <div style={{ marginTop: 'auto', display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={() => {
+                            setTransferAssetTarget(asset);
+                            setTransferCustodian(asset.custodian || '');
+                            setShowTransferAssetModal(true);
+                          }}
+                          style={{
+                            flex: 1,
+                            background: '#f1f5f9',
+                            color: '#0f172a',
+                            border: '1px solid #cbd5e1',
+                            padding: '7px 10px',
+                            borderRadius: '6px',
+                            fontSize: '0.74rem',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Transfer Custody
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAsset(asset.id)}
+                          style={{
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            border: '1px solid #fecaca',
+                            padding: '7px 10px',
+                            borderRadius: '6px',
+                            fontSize: '0.74rem',
+                            cursor: 'pointer'
+                          }}
+                          title="Delete Asset"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -2036,9 +2676,60 @@ END:VCARD`;
               </div>
 
               <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', overflowX: 'auto' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#0f172a', margin: '0 0 16px 0' }}>
-                  Dual-Signoff Financial Transactions
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#0f172a', margin: '0 0 2px 0' }}>
+                      Dual-Signoff Financial Transactions
+                    </h3>
+                    <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>
+                      All expenditures require dual signoff between Chapter Treasurer and Chapter President.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={handleExportAccountsCSV}
+                      style={{
+                        background: '#f1f5f9',
+                        color: '#0f172a',
+                        border: '1px solid #cbd5e1',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <Download size={14} />
+                      <span>Export CSV</span>
+                    </button>
+                    {canManageAccounts && (
+                      <button
+                        onClick={() => setShowAddAccountModal(true)}
+                        style={{
+                          background: '#005696',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          fontSize: '0.8rem',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 2px 6px rgba(0, 86, 150, 0.25)'
+                        }}
+                      >
+                        <PlusCircle size={15} />
+                        <span>Record Transaction</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
 
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
                   <thead>
@@ -2081,28 +2772,52 @@ END:VCARD`;
                           </td>
                           <td style={{ padding: '12px 8px' }}>
                             {isPending ? (
-                              <span style={{ color: '#d97706', fontWeight: '700' }}>⏳ Awaiting President Sign-off</span>
+                              <span style={{ color: '#d97706', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                ⏳ Pending President Sign-off
+                              </span>
                             ) : (
-                              <span style={{ color: '#059669', fontWeight: '700' }}>✓ Approved ({item.approvedBy?.split(' ')[1]})</span>
+                              <span style={{ color: '#059669', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <CheckCircle2 size={14} color="#059669" />
+                                <span>Dual-Signed ({item.approvedBy?.split(' ')[1] || 'Approved'})</span>
+                              </span>
                             )}
                           </td>
                           <td style={{ padding: '12px 8px' }}>
-                            {isPending && canManageChapter && (
-                              <button
-                                onClick={() => handleApproveVoucher(item.id)}
-                                style={{
-                                  background: '#059669',
-                                  color: '#ffffff',
-                                  border: 'none',
-                                  padding: '5px 10px',
-                                  borderRadius: '6px',
-                                  fontSize: '0.74rem',
-                                  fontWeight: '700',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                Approve
-                              </button>
+                            {isPending && canManageChapter ? (
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                  onClick={() => handleApproveVoucher(item.id)}
+                                  style={{
+                                    background: '#059669',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    padding: '5px 10px',
+                                    borderRadius: '6px',
+                                    fontSize: '0.74rem',
+                                    fontWeight: '700',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Dual-Sign
+                                </button>
+                                <button
+                                  onClick={() => handleRejectVoucher(item.id)}
+                                  style={{
+                                    background: '#fee2e2',
+                                    color: '#dc2626',
+                                    border: '1px solid #fecaca',
+                                    padding: '5px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '0.74rem',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Reject Voucher"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Audited</span>
                             )}
                           </td>
                         </tr>
@@ -2335,26 +3050,47 @@ END:VCARD`;
                   </p>
                 </div>
 
-                <button
-                  onClick={() => setShowCreateUserModal(true)}
-                  style={{
-                    background: '#005696',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '9px 18px',
-                    borderRadius: '8px',
-                    fontSize: '0.82rem',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 2px 6px rgba(0, 86, 150, 0.25)'
-                  }}
-                >
-                  <PlusCircle size={16} />
-                  <span>{isSuperAdmin ? 'Create New User' : 'Appoint Officer / Add Member'}</span>
-                </button>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={handleExportUsersCSV}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#0f172a',
+                      border: '1px solid #cbd5e1',
+                      padding: '9px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Download size={15} />
+                    <span>Export CSV</span>
+                  </button>
+                  <button
+                    onClick={() => setShowCreateUserModal(true)}
+                    style={{
+                      background: '#005696',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '9px 18px',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(0, 86, 150, 0.25)'
+                    }}
+                  >
+                    <PlusCircle size={16} />
+                    <span>{isSuperAdmin ? 'Create New User' : 'Appoint Officer / Add Member'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Search & Filter Bar */}
@@ -2564,6 +3300,30 @@ END:VCARD`;
                                   </select>
 
                                   <button
+                                    onClick={() => {
+                                      setEditingUser({ ...user });
+                                      setShowEditUserModal(true);
+                                    }}
+                                    style={{
+                                      background: '#e0f2fe',
+                                      color: '#0369a1',
+                                      border: '1px solid #bae6fd',
+                                      padding: '4px 8px',
+                                      borderRadius: '6px',
+                                      fontSize: '0.72rem',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '3px'
+                                    }}
+                                    title="Edit Profile & Business Info"
+                                  >
+                                    <Edit3 size={12} />
+                                    <span>Edit</span>
+                                  </button>
+
+                                  <button
                                     onClick={() => handleToggleUserStatus(user.id)}
                                     style={{
                                       background: user.status === 'Suspended' ? '#dcfce7' : '#f1f5f9',
@@ -2578,6 +3338,24 @@ END:VCARD`;
                                   >
                                     {user.status === 'Suspended' ? 'Activate' : 'Suspend'}
                                   </button>
+
+                                  {!isSuperAdminRow && (
+                                    <button
+                                      onClick={() => handleDeleteUser(user.id)}
+                                      style={{
+                                        background: '#fee2e2',
+                                        color: '#dc2626',
+                                        border: '1px solid #fecaca',
+                                        padding: '4px 6px',
+                                        borderRadius: '6px',
+                                        fontSize: '0.72rem',
+                                        cursor: 'pointer'
+                                      }}
+                                      title="Remove from Chapter"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  )}
                                 </div>
                               ) : (
                                 <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontStyle: 'italic' }}>
@@ -2965,6 +3743,610 @@ END:VCARD`;
                   style={{ flex: 1, background: '#005696', border: 'none', color: '#ffffff', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}
                 >
                   Publish Offering
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SUB-MODAL: EDIT USER PROFILE & BUSINESS
+         ========================================================================= */}
+      {showEditUserModal && editingUser && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1300,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '520px',
+            padding: '24px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                  Edit Member Profile & Business
+                </h3>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  {editingUser.membershipId} • {editingUser.roleTitle}
+                </span>
+              </div>
+              <button onClick={() => setShowEditUserModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditUserSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editingUser.fullName}
+                  onChange={(e) => setEditingUser({ ...editingUser, fullName: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Phone / WhatsApp</label>
+                  <input
+                    type="text"
+                    value={editingUser.phone}
+                    onChange={(e) => setEditingUser({ ...editingUser, phone: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Blood Group</label>
+                  <select
+                    value={editingUser.bloodGroup || 'B+ve'}
+                    onChange={(e) => setEditingUser({ ...editingUser, bloodGroup: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    {['A+ve', 'A-ve', 'B+ve', 'B-ve', 'O+ve', 'O-ve', 'AB+ve', 'AB-ve'].map(bg => (
+                      <option key={bg} value={bg}>{bg}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Portfolio / Designation</label>
+                <input
+                  type="text"
+                  value={editingUser.designation}
+                  onChange={(e) => setEditingUser({ ...editingUser, designation: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Business Enterprise Name</label>
+                  <input
+                    type="text"
+                    value={editingUser.businessName || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, businessName: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Industry Category</label>
+                  <input
+                    type="text"
+                    value={editingUser.businessCategory || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, businessCategory: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Business Address / Location</label>
+                <input
+                  type="text"
+                  value={editingUser.businessAddress || ''}
+                  onChange={(e) => setEditingUser({ ...editingUser, businessAddress: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowEditUserModal(false)}
+                  style={{ flex: 1, background: '#f1f5f9', border: 'none', color: '#475569', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ flex: 1, background: '#005696', border: 'none', color: '#ffffff', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  Save Profile Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SUB-MODAL: REGISTER CHAPTER ASSET
+         ========================================================================= */}
+      {showAddAssetModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1300,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '480px',
+            padding: '24px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                Register New Chapter Asset
+              </h3>
+              <button onClick={() => setShowAddAssetModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddAssetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Asset Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Presidential Official Gavel & Base"
+                  value={newAssetForm.name}
+                  onChange={(e) => setNewAssetForm({ ...newAssetForm, name: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Category</label>
+                  <select
+                    value={newAssetForm.category}
+                    onChange={(e) => setNewAssetForm({ ...newAssetForm, category: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    <option value="Regalia & Badges">Regalia & Badges</option>
+                    <option value="Audio & Visual">Audio & Visual</option>
+                    <option value="Display & Signage">Display & Signage</option>
+                    <option value="Office & Furniture">Office & Furniture</option>
+                    <option value="Electronics & IT">Electronics & IT</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Estimated Value (₹)</label>
+                  <input
+                    type="number"
+                    value={newAssetForm.valuationINR}
+                    onChange={(e) => setNewAssetForm({ ...newAssetForm, valuationINR: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Custodian</label>
+                  <select
+                    value={newAssetForm.custodian}
+                    onChange={(e) => setNewAssetForm({ ...newAssetForm, custodian: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    <option value="">Select Officer Custodian</option>
+                    {usersList.map(u => (
+                      <option key={u.id} value={`${u.fullName} (${u.designation})`}>
+                        {u.fullName} ({u.designation})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Condition</label>
+                  <select
+                    value={newAssetForm.condition}
+                    onChange={(e) => setNewAssetForm({ ...newAssetForm, condition: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    <option value="Excellent">Excellent (Mint Condition)</option>
+                    <option value="Good">Good (Working Order)</option>
+                    <option value="Needs Maintenance">Needs Maintenance</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Physical Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Chapter Secretariat / President Office"
+                  value={newAssetForm.location}
+                  onChange={(e) => setNewAssetForm({ ...newAssetForm, location: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddAssetModal(false)}
+                  style={{ flex: 1, background: '#f1f5f9', border: 'none', color: '#475569', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ flex: 1, background: '#005696', border: 'none', color: '#ffffff', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  Register Asset
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SUB-MODAL: TRANSFER ASSET CUSTODY
+         ========================================================================= */}
+      {showTransferAssetModal && transferAssetTarget && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1300,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '440px',
+            padding: '24px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                  Transfer Asset Custody
+                </h3>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  {transferAssetTarget.name}
+                </span>
+              </div>
+              <button onClick={() => setShowTransferAssetModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleTransferAssetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>
+                  Select New Custodian
+                </label>
+                <select
+                  required
+                  value={transferCustodian}
+                  onChange={(e) => setTransferCustodian(e.target.value)}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                >
+                  <option value="">Select Officer or Member</option>
+                  {usersList.map(u => (
+                    <option key={u.id} value={`${u.fullName} (${u.designation})`}>
+                      {u.fullName} ({u.designation})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowTransferAssetModal(false)}
+                  style={{ flex: 1, background: '#f1f5f9', border: 'none', color: '#475569', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ flex: 1, background: '#005696', border: 'none', color: '#ffffff', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  Confirm Handover
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SUB-MODAL: RECORD FINANCIAL TRANSACTION (TREASURY)
+         ========================================================================= */}
+      {showAddAccountModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1300,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '480px',
+            padding: '24px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                  Record Financial Voucher
+                </h3>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  Dual-signoff approval workflow for Chapter Treasury
+                </span>
+              </div>
+              <button onClick={() => setShowAddAccountModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddAccountSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Transaction Type</label>
+                  <select
+                    value={newAccountForm.type}
+                    onChange={(e) => setNewAccountForm({ ...newAccountForm, type: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    <option value="INCOME">INCOME (Received)</option>
+                    <option value="EXPENSE">EXPENSE (Paid Out)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Amount (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="e.g. 15000"
+                    value={newAccountForm.amountINR}
+                    onChange={(e) => setNewAccountForm({ ...newAccountForm, amountINR: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Category</label>
+                  <select
+                    value={newAccountForm.category}
+                    onChange={(e) => setNewAccountForm({ ...newAccountForm, category: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    <option value="Membership Dues">Membership Dues</option>
+                    <option value="Corporate Sponsorship">Corporate Sponsorship</option>
+                    <option value="Meeting Venue & Food">Meeting Venue & Food</option>
+                    <option value="Community Project">Community Project</option>
+                    <option value="Administration & Regalia">Administration & Regalia</option>
+                    <option value="Training & Faculty">Training & Faculty</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Voucher / Receipt Ref</label>
+                  <input
+                    type="text"
+                    value={newAccountForm.receiptVoucherNo}
+                    onChange={(e) => setNewAccountForm({ ...newAccountForm, receiptVoucherNo: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Description & Purpose</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Annual chapter dues received from 5 new members"
+                  value={newAccountForm.description}
+                  onChange={(e) => setNewAccountForm({ ...newAccountForm, description: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddAccountModal(false)}
+                  style={{ flex: 1, background: '#f1f5f9', border: 'none', color: '#475569', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ flex: 1, background: '#005696', border: 'none', color: '#ffffff', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  Submit Voucher
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SUB-MODAL: SCHEDULE CHAPTER EVENT (CALENDAR)
+         ========================================================================= */}
+      {showAddCalendarModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1300,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '500px',
+            padding: '24px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                Schedule Chapter Meeting / Event
+              </h3>
+              <button onClick={() => setShowAddCalendarModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCalendarSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Event Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 10th General Body Meeting & B2B Trade Conclave"
+                  value={newCalendarForm.title}
+                  onChange={(e) => setNewCalendarForm({ ...newCalendarForm, title: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Category</label>
+                  <select
+                    value={newCalendarForm.category}
+                    onChange={(e) => setNewCalendarForm({ ...newCalendarForm, category: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    <option value="GBM">GBM (General Body Meeting)</option>
+                    <option value="BOARD_MEETING">Board of Directors Meeting</option>
+                    <option value="TRAINING">Training / Workshop</option>
+                    <option value="FELLOWSHIP">Fellowship & Family Night</option>
+                    <option value="COMMUNITY">Community Impact Project</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={newCalendarForm.date}
+                    onChange={(e) => setNewCalendarForm({ ...newCalendarForm, date: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Time</label>
+                  <input
+                    type="text"
+                    placeholder="06:30 PM - 08:30 PM"
+                    value={newCalendarForm.time}
+                    onChange={(e) => setNewCalendarForm({ ...newCalendarForm, time: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Dress Code</label>
+                  <input
+                    type="text"
+                    placeholder="Jaycee Formal with Pin"
+                    value={newCalendarForm.dressCode}
+                    onChange={(e) => setNewCalendarForm({ ...newCalendarForm, dressCode: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Venue</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Hotel Bliss, Renigunta Road, Tirupati"
+                  value={newCalendarForm.venue}
+                  onChange={(e) => setNewCalendarForm({ ...newCalendarForm, venue: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Agenda Notes</label>
+                <textarea
+                  rows={2}
+                  placeholder="Key agenda points to be discussed..."
+                  value={newCalendarForm.description}
+                  onChange={(e) => setNewCalendarForm({ ...newCalendarForm, description: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCalendarModal(false)}
+                  style={{ flex: 1, background: '#f1f5f9', border: 'none', color: '#475569', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ flex: 1, background: '#005696', border: 'none', color: '#ffffff', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  Publish to Calendar
                 </button>
               </div>
             </form>

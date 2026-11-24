@@ -18,6 +18,7 @@ import JayceeDashboard from './components/JayceeDashboard';
 import AuthModal from './components/AuthModal';
 
 import { PENDING_JAYCEE_APPLICATIONS, RECENT_CONNECT_FEED, BUSINESSES } from './data/mockData';
+import { loadStoredData, saveStoredData } from './utils/storage';
 
 export default function App() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -30,38 +31,45 @@ export default function App() {
 
   // Authentication State with Persistence
   const [authenticatedUser, setAuthenticatedUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('jci_auth_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
+    return loadStoredData('jci_auth_user', null);
   });
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
-  // Dynamic state
-  const [applications, setApplications] = useState(PENDING_JAYCEE_APPLICATIONS);
-  const [connectFeed, setConnectFeed] = useState(RECENT_CONNECT_FEED);
-  const [customBizOfTheDay, setCustomBizOfTheDay] = useState(BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0]);
-  const [liveCelebrationFlyer, setLiveCelebrationFlyer] = useState(null);
+  // Dynamic state with local storage persistence
+  const [applications, setApplications] = useState(() => loadStoredData('jci_applications', PENDING_JAYCEE_APPLICATIONS));
+  const [connectFeed, setConnectFeed] = useState(() => loadStoredData('jci_connect_feed', RECENT_CONNECT_FEED));
+  const [customBizOfTheDay, setCustomBizOfTheDay] = useState(() => {
+    return loadStoredData('jci_active_spotlight', BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0]);
+  });
+  const [liveCelebrationFlyer, setLiveCelebrationFlyer] = useState(() => {
+    return loadStoredData('jci_celebration_flyer', null);
+  });
 
   const businessOfTheDay = customBizOfTheDay || BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0];
 
   const handleLoginSuccess = (user) => {
     setAuthenticatedUser(user);
-    try {
-      localStorage.setItem('jci_auth_user', JSON.stringify(user));
-    } catch {}
+    saveStoredData('jci_auth_user', user);
     setIsAuthOpen(false);
     setIsJayceePortalOpen(true);
   };
 
   const handleLogout = () => {
     setAuthenticatedUser(null);
-    try {
+    if (typeof window !== 'undefined') {
       localStorage.removeItem('jci_auth_user');
-    } catch {}
+    }
     setIsJayceePortalOpen(false);
+  };
+
+  const handleSetLiveSpotlight = (biz) => {
+    setCustomBizOfTheDay(biz);
+    saveStoredData('jci_active_spotlight', biz);
+  };
+
+  const handleSetLiveFlyer = (flyer) => {
+    setLiveCelebrationFlyer(flyer);
+    saveStoredData('jci_celebration_flyer', flyer);
   };
 
   const handleAddApplication = (newApp) => {
@@ -89,8 +97,8 @@ export default function App() {
         authenticatedUser={authenticatedUser}
         onExitToWebsite={() => setIsJayceePortalOpen(false)}
         onLogout={handleLogout}
-        onSetBusinessOfTheDay={(biz) => setCustomBizOfTheDay(biz)}
-        onPublishCelebrationToWebsite={(flyer) => setLiveCelebrationFlyer(flyer)}
+        onSetBusinessOfTheDay={handleSetLiveSpotlight}
+        onPublishCelebrationToWebsite={handleSetLiveFlyer}
       />
     );
   }
