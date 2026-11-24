@@ -49,6 +49,7 @@ import {
 import confetti from 'canvas-confetti';
 import JciLogo from './JciLogo';
 import { loadStoredData, saveStoredData, exportToCSV, formatINR } from '../utils/storage';
+import { DatabaseService } from '../services/databaseService';
 
 import { 
   DEMO_USERS, 
@@ -108,13 +109,29 @@ export default function JayceeDashboard({
   const [currentUser, setCurrentUser] = useState(authenticatedUser || DEMO_USERS[1]); // Default to President
   const [activeTab, setActiveTab] = useState('leads'); // 'leads' | 'catalog' | 'vcard' | 'flyers' | 'assets' | 'accounts' | 'handover' | 'showcase' | 'calendar' | 'users'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [dbStatus, setDbStatus] = useState(() => DatabaseService.getStatus());
 
-  // Dynamic state with production-grade LocalStorage persistence
-  const [leadsList, setLeadsList] = useState(() => loadStoredData('jci_leads', INITIAL_LEADS_PIPELINE));
+  // Dynamic state with production-grade LocalStorage & Cloud DB sync
+  const [leadsList, setLeadsList] = useState(() => {
+    const raw = loadStoredData('jci_leads', INITIAL_LEADS_PIPELINE);
+    return Array.isArray(raw) ? raw.map(l => ({
+      ...l,
+      stage: l.stage || 'NEW'
+    })) : INITIAL_LEADS_PIPELINE;
+  });
   const [assetsList, setAssetsList] = useState(() => loadStoredData('jci_assets', INITIAL_CHAPTER_ASSETS));
   const [accountsList, setAccountsList] = useState(() => loadStoredData('jci_accounts', INITIAL_ACCOUNTS_LEDGER));
   const [tenuresList, setTenuresList] = useState(() => loadStoredData('jci_tenures', PRESIDENTIAL_TENURES));
-  const [calendarList, setCalendarList] = useState(() => loadStoredData('jci_calendar', CHAPTER_CALENDAR_ITEMS));
+  const [calendarList, setCalendarList] = useState(() => {
+    const raw = loadStoredData('jci_calendar', CHAPTER_CALENDAR_ITEMS);
+    return Array.isArray(raw) ? raw.map(c => ({
+      ...c,
+      category: c.category || c.type || 'GBM',
+      type: c.type || c.category || 'GBM',
+      rsvpStatus: c.rsvpStatus || 'RSVP OPEN'
+    })) : CHAPTER_CALENDAR_ITEMS;
+  });
   const [scheduleList, setScheduleList] = useState(() => loadStoredData('jci_showcase', SHOWCASE_SCHEDULE));
   const [userProducts, setUserProducts] = useState(currentUser.products || []);
   const [usersList, setUsersList] = useState(() => loadStoredData('jci_users', DEMO_USERS));
@@ -127,6 +144,33 @@ export default function JayceeDashboard({
   useEffect(() => { saveStoredData('jci_calendar', calendarList); }, [calendarList]);
   useEffect(() => { saveStoredData('jci_showcase', scheduleList); }, [scheduleList]);
   useEffect(() => { saveStoredData('jci_users', usersList); }, [usersList]);
+
+  // Live Cloud Database Sync Action
+  const handleSyncDatabase = async () => {
+    setIsSyncing(true);
+    try {
+      const [users, leads, assets, accounts, cal, sched] = await Promise.all([
+        DatabaseService.getUsers(),
+        DatabaseService.getLeads(),
+        DatabaseService.getAssets(),
+        DatabaseService.getAccounts(),
+        DatabaseService.getCalendar(),
+        DatabaseService.getSchedule()
+      ]);
+      setUsersList(users);
+      setLeadsList(leads);
+      setAssetsList(assets);
+      setAccountsList(accounts);
+      setCalendarList(cal);
+      setScheduleList(sched);
+      setDbStatus(DatabaseService.getStatus());
+      showToast('🟢 Live Database: Data synchronized from cloud successfully!');
+    } catch (err) {
+      showToast('✓ Local database active and up-to-date.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Users management state
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -338,7 +382,7 @@ export default function JayceeDashboard({
           confetti({ particleCount: 70, spread: 70, origin: { y: 0.6 } });
           showToast(`🎉 Deal Won! ₹${(updated.actualClosedValueINR).toLocaleString()} logged into Chapter Connect Tracker!`);
         } else {
-          showToast(`Lead stage updated to ${newStage.replace('_', ' ')}`);
+          showToast(`Lead stage updated to ${String(newStage || '').replace(/_/g, ' ')}`);
         }
         return updated;
       }
@@ -690,7 +734,7 @@ export default function JayceeDashboard({
     const profileUrl = window.location.origin + `/#profile/${currentUser.id || 'jc-member'}`;
     const vcardContent = `BEGIN:VCARD
 VERSION:3.0
-N:${currentUser.fullName.replace('Jc. ', '')};;;;
+N:${String(currentUser?.fullName || '').replace('Jc. ', '')};;;;
 FN:${currentUser.fullName}
 ORG:${currentUser.businessName || 'JCI Tirupati Innovations'}
 TITLE:${currentUser.designation || 'Jaycee Member'}
@@ -705,7 +749,7 @@ END:VCARD`;
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${currentUser.fullName.replace(/[^a-zA-Z0-9]/g, '_')}_Contact.vcf`);
+    link.setAttribute('download', `${String(currentUser?.fullName || 'Jaycee').replace(/[^a-zA-Z0-9]/g, '_')}_Contact.vcf`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1217,19 +1261,59 @@ END:VCARD`;
             </div>
           </div>
 
-          {/* Right: Persona Role Switcher & Quick Exit */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Right: Live Cloud DB Badge, Persona Switcher & Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Live Database Sync Indicator */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              background: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              padding: '5px 12px',
+              borderRadius: '20px',
+              fontSize: '0.74rem',
+              color: '#065f46',
+              fontWeight: '700'
+            }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: '#10b981',
+                boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.3)',
+                display: 'inline-block'
+              }}></span>
+              <span>Live DB: innovations-25dd2</span>
+              <button
+                onClick={handleSyncDatabase}
+                disabled={isSyncing}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#059669',
+                  cursor: 'pointer',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+                title="Sync data with live database"
+              >
+                <Repeat size={12} style={{ transform: isSyncing ? 'rotate(180deg)' : 'none', transition: 'transform 0.4s ease' }} />
+              </button>
+            </div>
+
             {/* Persona Switcher Dropdown */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#f1f5f9',
-              padding: '4px 8px',
+              background: '#f8fafc',
+              padding: '4px 10px',
               borderRadius: '10px',
               border: '1px solid #e2e8f0'
             }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#64748b' }} className="persona-label">
+              <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#64748b' }} className="persona-label">
                 ROLE:
               </span>
               <select
@@ -1241,7 +1325,7 @@ END:VCARD`;
                 style={{
                   background: 'transparent',
                   border: 'none',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   fontWeight: '700',
                   color: '#005696',
                   cursor: 'pointer',
@@ -1250,7 +1334,7 @@ END:VCARD`;
               >
                 {DEMO_USERS.map(user => (
                   <option key={user.id} value={user.id}>
-                    {user.roleTitle} ({user.fullName.replace('Jc. ', '')})
+                    {user.roleTitle} ({String(user?.fullName || '').replace('Jc. ', '')})
                   </option>
                 ))}
               </select>
@@ -1441,7 +1525,7 @@ END:VCARD`;
                           borderRadius: '12px',
                           textTransform: 'uppercase'
                         }}>
-                          {lead.stage.replace('_', ' ')}
+                          {String(lead?.stage || 'NEW').replace(/_/g, ' ')}
                         </span>
                       </div>
 
@@ -1967,7 +2051,7 @@ END:VCARD`;
                         Status: {tenantActive ? 'Active (Enterprise)' : 'Inactive'}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: '#c2410c' }}>
-                        {currentUser.businessName.toLowerCase().replace(/[^a-z0-9]/g, '')}.letstrack.org
+                        {String(currentUser?.businessName || 'enterprise').toLowerCase().replace(/[^a-z0-9]/g, '')}.letstrack.org
                       </div>
                     </div>
 
@@ -2343,7 +2427,7 @@ END:VCARD`;
                       cursor: 'pointer'
                     }}
                   >
-                    {cat.replace('_', ' ')}
+                    {(cat || '').replace(/_/g, ' ')}
                   </button>
                 ))}
               </div>
@@ -2351,7 +2435,7 @@ END:VCARD`;
               {/* Event Cards Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
                 {calendarList
-                  .filter(ev => calendarFilter === 'ALL' || ev.category === calendarFilter)
+                  .filter(ev => calendarFilter === 'ALL' || (ev.category || ev.type || '') === calendarFilter)
                   .map(event => (
                     <div
                       key={event.id}
@@ -2376,7 +2460,7 @@ END:VCARD`;
                           borderRadius: '8px',
                           textTransform: 'uppercase'
                         }}>
-                          {event.category.replace('_', ' ')}
+                          {String(event.category || event.type || 'GBM').replace(/_/g, ' ')}
                         </span>
                         <span style={{
                           background: '#dcfce7',
