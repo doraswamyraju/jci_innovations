@@ -18,6 +18,8 @@ import {
 import JciLogo from './JciLogo';
 import { DEMO_USERS } from '../data/mockData';
 import { signInWithGoogle } from '../config/firebase';
+import { loadStoredData, saveStoredData } from '../utils/storage';
+import { DatabaseService } from '../services/databaseService';
 
 export default function AuthModal({ onClose, onLoginSuccess }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
@@ -74,7 +76,31 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
     try {
       const response = await signInWithGoogle();
       setIsGoogleLoading(false);
-      onLoginSuccess(response.user);
+      const googleUser = response.user;
+
+      // Automatically register and persist into Chapter Database & Members Directory
+      const existingUsers = loadStoredData('jci_users', DEMO_USERS);
+      const emailLower = googleUser.email?.toLowerCase();
+      const userExists = existingUsers.some(u => 
+        (emailLower && u.email?.toLowerCase() === emailLower) || u.id === googleUser.id
+      );
+
+      let updatedUsers;
+      if (userExists) {
+        updatedUsers = existingUsers.map(u => 
+          ((emailLower && u.email?.toLowerCase() === emailLower) || u.id === googleUser.id)
+            ? { ...u, ...googleUser }
+            : u
+        );
+      } else {
+        updatedUsers = [googleUser, ...existingUsers];
+      }
+
+      saveStoredData('jci_users', updatedUsers);
+      saveStoredData('jci_auth_user', googleUser);
+      DatabaseService.saveUser(googleUser, existingUsers);
+
+      onLoginSuccess(googleUser);
     } catch (err) {
       setIsGoogleLoading(false);
       console.error(err);
@@ -124,6 +150,12 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
         { name: 'Initial Business Consultation', price: 'Complimentary', desc: 'B2B assessment for fellow Jaycees' }
       ]
     };
+
+    const existingUsers = loadStoredData('jci_users', DEMO_USERS);
+    const updatedUsers = [newUser, ...existingUsers.filter(u => u.email?.toLowerCase() !== newUser.email.toLowerCase())];
+    saveStoredData('jci_users', updatedUsers);
+    saveStoredData('jci_auth_user', newUser);
+    DatabaseService.saveUser(newUser, existingUsers);
 
     onLoginSuccess(newUser);
   };

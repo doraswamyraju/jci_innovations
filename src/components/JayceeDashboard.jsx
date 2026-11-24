@@ -44,7 +44,8 @@ import {
   CheckSquare,
   MapPin,
   MessageCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ChevronDown
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import JciLogo from './JciLogo';
@@ -105,12 +106,44 @@ export default function JayceeDashboard({
   onSetBusinessOfTheDay,
   onPublishCelebrationToWebsite 
 }) {
-  // Current user persona (Role Switcher & Logged-in session)
-  const [currentUser, setCurrentUser] = useState(authenticatedUser || DEMO_USERS[1]); // Default to President
+  // Current user persona & Logged-in session
+  const [currentUser, setCurrentUser] = useState(() => {
+    return authenticatedUser || loadStoredData('jci_auth_user', null) || DEMO_USERS[0];
+  });
   const [activeTab, setActiveTab] = useState('leads'); // 'leads' | 'catalog' | 'vcard' | 'flyers' | 'assets' | 'accounts' | 'handover' | 'showcase' | 'calendar' | 'users'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [dbStatus, setDbStatus] = useState(() => DatabaseService.getStatus());
+
+  // Topbar dropdown states
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [notificationsList, setNotificationsList] = useState([
+    {
+      id: 'notif-1',
+      title: 'Deal Won: ₹ 14,50,000 Logged',
+      desc: 'Commercial Office Space 30kW Solar deal closed successfully!',
+      time: '12m ago',
+      unread: true,
+      targetTab: 'leads'
+    },
+    {
+      id: 'notif-2',
+      title: 'Dual-Signoff Treasury Action Required',
+      desc: 'Voucher VCH-402 (₹25,000 for Stage Backdrop) awaits President signoff.',
+      time: '45m ago',
+      unread: true,
+      targetTab: 'accounts'
+    },
+    {
+      id: 'notif-3',
+      title: 'Chapter GBM & Leadership Conclave',
+      desc: 'General Body Meeting on Oct 25 at Hotel Bliss. RSVP is open.',
+      time: '2h ago',
+      unread: true,
+      targetTab: 'calendar'
+    }
+  ]);
 
   // Dynamic state with production-grade LocalStorage & Cloud DB sync
   const [leadsList, setLeadsList] = useState(() => {
@@ -134,7 +167,22 @@ export default function JayceeDashboard({
   });
   const [scheduleList, setScheduleList] = useState(() => loadStoredData('jci_showcase', SHOWCASE_SCHEDULE));
   const [userProducts, setUserProducts] = useState(currentUser.products || []);
-  const [usersList, setUsersList] = useState(() => loadStoredData('jci_users', DEMO_USERS));
+  const [usersList, setUsersList] = useState(() => {
+    const raw = loadStoredData('jci_users', null);
+    let list = Array.isArray(raw) && raw.length > 0 ? raw : [...DEMO_USERS];
+    const sessionUser = authenticatedUser || loadStoredData('jci_auth_user', null);
+    if (sessionUser && sessionUser.email) {
+      const emailLower = sessionUser.email.toLowerCase();
+      const idx = list.findIndex(u => (u.email && u.email.toLowerCase() === emailLower) || u.id === sessionUser.id);
+      if (idx >= 0) {
+        list[idx] = { ...list[idx], ...sessionUser };
+      } else {
+        list = [sessionUser, ...list];
+      }
+      saveStoredData('jci_users', list);
+    }
+    return list;
+  });
 
   // Sync state changes to localStorage
   useEffect(() => { saveStoredData('jci_leads', leadsList); }, [leadsList]);
@@ -144,6 +192,48 @@ export default function JayceeDashboard({
   useEffect(() => { saveStoredData('jci_calendar', calendarList); }, [calendarList]);
   useEffect(() => { saveStoredData('jci_showcase', scheduleList); }, [scheduleList]);
   useEffect(() => { saveStoredData('jci_users', usersList); }, [usersList]);
+
+  // Synchronize authenticatedUser prop into currentUser and usersList
+  useEffect(() => {
+    if (authenticatedUser) {
+      setCurrentUser(authenticatedUser);
+      setUserProducts(authenticatedUser.products || []);
+      setCardThemeId(authenticatedUser.cardTheme || 'royal-blue');
+      setTenantActive(authenticatedUser.tenantEnabled || false);
+
+      setUsersList(prev => {
+        const emailLower = authenticatedUser.email?.toLowerCase();
+        const exists = prev.some(u => 
+          (emailLower && u.email?.toLowerCase() === emailLower) || u.id === authenticatedUser.id
+        );
+        let updated;
+        if (exists) {
+          updated = prev.map(u => 
+            ((emailLower && u.email?.toLowerCase() === emailLower) || u.id === authenticatedUser.id)
+              ? { ...u, ...authenticatedUser }
+              : u
+          );
+        } else {
+          updated = [authenticatedUser, ...prev];
+        }
+        saveStoredData('jci_users', updated);
+        DatabaseService.saveUser(authenticatedUser, prev);
+        return updated;
+      });
+    }
+  }, [authenticatedUser]);
+
+  // Close topbar dropdowns when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.topbar-interactive-zone')) {
+        setShowNotifications(false);
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   // Live Cloud Database Sync Action
   const handleSyncDatabase = async () => {
@@ -1261,8 +1351,8 @@ END:VCARD`;
             </div>
           </div>
 
-          {/* Right: Live Cloud DB Badge, Persona Switcher & Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* Right: Live Cloud DB Badge, Notifications & Profile Menu */}
+          <div className="topbar-interactive-zone" style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
             {/* Live Database Sync Indicator */}
             <div style={{
               display: 'flex',
@@ -1270,7 +1360,7 @@ END:VCARD`;
               gap: '7px',
               background: '#ecfdf5',
               border: '1px solid #a7f3d0',
-              padding: '5px 12px',
+              padding: '6px 12px',
               borderRadius: '20px',
               fontSize: '0.74rem',
               color: '#065f46',
@@ -1303,64 +1393,350 @@ END:VCARD`;
               </button>
             </div>
 
-            {/* Persona Switcher Dropdown */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#f8fafc',
-              padding: '4px 10px',
-              borderRadius: '10px',
-              border: '1px solid #e2e8f0'
-            }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#64748b' }} className="persona-label">
-                ROLE:
-              </span>
-              <select
-                value={currentUser.id}
-                onChange={(e) => {
-                  const targetUser = DEMO_USERS.find(u => u.id === e.target.value);
-                  if (targetUser) handleSwitchUser(targetUser);
+            {/* Notification Bell Icon & Dropdown */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  setShowProfileMenu(false);
                 }}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  fontSize: '0.78rem',
-                  fontWeight: '700',
-                  color: '#005696',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                  background: showNotifications ? '#e0f2fe' : '#f8fafc',
+                  color: showNotifications ? '#005696' : '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   cursor: 'pointer',
-                  outline: 'none'
+                  position: 'relative',
+                  transition: 'all 0.15s ease'
                 }}
+                title="Chapter Alerts & Notifications"
               >
-                {DEMO_USERS.map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.roleTitle} ({String(user?.fullName || '').replace('Jc. ', '')})
-                  </option>
-                ))}
-              </select>
+                <Bell size={18} />
+                {notificationsList.filter(n => n.unread).length > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    right: '-4px',
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    background: '#ef4444',
+                    color: '#ffffff',
+                    fontSize: '0.66rem',
+                    fontWeight: '800',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)'
+                  }}>
+                    {notificationsList.filter(n => n.unread).length}
+                  </span>
+                )}
+              </button>
+
+              {/* Notifications Popover Dropdown */}
+              {showNotifications && (
+                <div style={{
+                  position: 'absolute',
+                  top: '46px',
+                  right: 0,
+                  width: '340px',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.12)',
+                  zIndex: 1200,
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    padding: '12px 16px',
+                    borderBottom: '1px solid #f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: '#f8fafc'
+                  }}>
+                    <div style={{ fontWeight: '800', fontSize: '0.84rem', color: '#0f172a' }}>
+                      Chapter Notifications
+                    </div>
+                    {notificationsList.filter(n => n.unread).length > 0 && (
+                      <button
+                        onClick={() => {
+                          setNotificationsList(prev => prev.map(n => ({ ...n, unread: false })));
+                        }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#0284c7',
+                          fontSize: '0.72rem',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                    {notificationsList.map(notif => (
+                      <div
+                        key={notif.id}
+                        onClick={() => {
+                          if (notif.targetTab) setActiveTab(notif.targetTab);
+                          setNotificationsList(prev => prev.map(n => n.id === notif.id ? { ...n, unread: false } : n));
+                          setShowNotifications(false);
+                        }}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom: '1px solid #f1f5f9',
+                          background: notif.unread ? 'rgba(2, 132, 199, 0.04)' : '#ffffff',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = notif.unread ? 'rgba(2, 132, 199, 0.04)' : '#ffffff'}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: notif.unread ? '700' : '600', color: '#0f172a' }}>
+                            {notif.title}
+                          </span>
+                          <span style={{ fontSize: '0.66rem', color: '#94a3b8' }}>
+                            {notif.time}
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b', lineHeight: '1.4' }}>
+                          {notif.desc}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{
+                    padding: '8px 16px',
+                    background: '#f8fafc',
+                    borderTop: '1px solid #f1f5f9',
+                    textAlign: 'center'
+                  }}>
+                    <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: '600' }}>
+                      JCI Tirupati Innovations Notification Stream
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <button
-              onClick={onExitToWebsite}
-              style={{
-                background: '#005696',
-                color: '#ffffff',
-                border: 'none',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                fontSize: '0.8rem',
-                fontWeight: '700',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 2px 6px rgba(0, 86, 150, 0.2)'
-              }}
-            >
-              <span>Public Site</span>
-              <ExternalLink size={14} />
-            </button>
+            {/* Profile Pill & Account Dropdown */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => {
+                  setShowProfileMenu(!showProfileMenu);
+                  setShowNotifications(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '9px',
+                  padding: '5px 12px 5px 6px',
+                  background: showProfileMenu ? '#f1f5f9' : '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '99px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+                title="Current Logged-in Profile"
+              >
+                <div style={{ position: 'relative' }}>
+                  <img
+                    src={currentUser.avatar}
+                    alt={currentUser.fullName}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '1.5px solid #005696'
+                    }}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    bottom: '0',
+                    right: '0',
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#10b981',
+                    border: '1.5px solid #ffffff'
+                  }}></span>
+                </div>
+                <div style={{ textAlign: 'left', lineHeight: '1.2' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0f172a', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {currentUser.fullName}
+                  </div>
+                  <div style={{ fontSize: '0.67rem', color: '#0284c7', fontWeight: '700' }}>
+                    {currentUser.roleTitle || (currentUser.role === 'super_admin' ? 'Super Admin' : 'Active Member')}
+                  </div>
+                </div>
+                <ChevronDown size={14} color="#64748b" style={{ transform: showProfileMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              </button>
 
+              {/* Profile Dropdown Card */}
+              {showProfileMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: '46px',
+                  right: 0,
+                  width: '280px',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.12)',
+                  zIndex: 1200,
+                  overflow: 'hidden'
+                }}>
+                  {/* User Profile Header */}
+                  <div style={{
+                    padding: '16px',
+                    background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                    borderBottom: '1px solid #e2e8f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}>
+                    <img
+                      src={currentUser.avatar}
+                      alt={currentUser.fullName}
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '2px solid #005696'
+                      }}
+                    />
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontWeight: '800', fontSize: '0.85rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {currentUser.fullName}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: '700' }}>
+                        {currentUser.designation}
+                      </div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {currentUser.email}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Profile Nav Items */}
+                  <div style={{ padding: '8px' }}>
+                    <button
+                      onClick={() => { setActiveTab('vcard'); setShowProfileMenu(false); }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '9px 12px',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        color: '#334155',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <QrCode size={16} color="#0284c7" />
+                      <span>My Digital Visiting Card</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setActiveTab('catalog'); setShowProfileMenu(false); }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '9px 12px',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        color: '#334155',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Package size={16} color="#059669" />
+                      <span>My Products & Services</span>
+                    </button>
+
+                    <button
+                      onClick={() => { setActiveTab('users'); setShowProfileMenu(false); }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '9px 12px',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        color: '#334155',
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Users size={16} color="#7c3aed" />
+                      <span>Chapter Officers & Members</span>
+                    </button>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid #f1f5f9', padding: '8px' }}>
+                    {onLogout && (
+                      <button
+                        onClick={() => { setShowProfileMenu(false); onLogout(); }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '9px 12px',
+                          background: '#fee2e2',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '0.8rem',
+                          fontWeight: '700',
+                          color: '#b91c1c',
+                          cursor: 'pointer',
+                          textAlign: 'left'
+                        }}
+                      >
+                        <LogOut size={16} color="#b91c1c" />
+                        <span>Sign Out / Logout</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Logout Button */}
             {onLogout && (
               <button
                 onClick={onLogout}
@@ -1370,7 +1746,7 @@ END:VCARD`;
                   border: '1px solid #fecaca',
                   padding: '8px 12px',
                   borderRadius: '8px',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   fontWeight: '700',
                   cursor: 'pointer',
                   display: 'flex',
@@ -3341,7 +3717,22 @@ END:VCARD`;
                                   style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }}
                                 />
                                 <div>
-                                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{user.fullName}</div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <span style={{ fontWeight: '700', color: '#0f172a' }}>{user.fullName}</span>
+                                    {((currentUser.email && user.email && user.email.toLowerCase() === currentUser.email.toLowerCase()) || user.id === currentUser.id) && (
+                                      <span style={{
+                                        background: '#dbeafe',
+                                        color: '#1d4ed8',
+                                        fontSize: '0.66rem',
+                                        fontWeight: '800',
+                                        padding: '1px 7px',
+                                        borderRadius: '99px',
+                                        border: '1px solid #bfdbfe'
+                                      }}>
+                                        You (Logged In)
+                                      </span>
+                                    )}
+                                  </div>
                                   <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
                                     {user.membershipId} • {user.chapter}
                                   </div>
