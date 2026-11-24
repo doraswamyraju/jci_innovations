@@ -13,11 +13,22 @@ import {
   Phone, 
   Award, 
   LayoutDashboard,
-  Briefcase
+  Briefcase,
+  LogIn,
+  LogOut,
+  User
 } from 'lucide-react';
 import JciLogo from './JciLogo';
 
-export default function Navbar({ onOpenRegister, onOpenFullAdmin, onOpenJayceePortal, pendingCount = 2 }) {
+export default function Navbar({ 
+  currentUser,
+  onOpenAuth,
+  onLogout,
+  onOpenRegister, 
+  onOpenFullAdmin, 
+  onOpenJayceePortal, 
+  pendingCount = 2 
+}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -110,39 +121,135 @@ export default function Navbar({ onOpenRegister, onOpenFullAdmin, onOpenJayceePo
 
           {/* Right Action Buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {/* Jaycee Hub (Web Module for All 4 Roles) */}
-            <button
-              onClick={onOpenJayceePortal}
-              style={{
-                background: 'linear-gradient(135deg, #0284c7 0%, #004578 100%)',
-                color: '#ffffff',
-                border: '1px solid #38bdf8',
-                padding: '9px 15px',
-                borderRadius: '8px',
-                fontSize: '0.84rem',
-                fontWeight: '700',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
-                transition: 'all 0.2s'
-              }}
-              title="Open Web Module for Super Admin, President, Officers & Members"
-            >
-              <Briefcase size={16} color="#fde68a" />
-              <span>Jaycee Portal</span>
-              <span style={{
-                background: '#f59e0b',
-                color: '#000000',
-                fontSize: '0.65rem',
-                fontWeight: '900',
-                padding: '1px 6px',
-                borderRadius: '10px'
-              }}>
-                4 Roles
-              </span>
-            </button>
+            {/* If user is logged in: Show User Badge & Dashboard */}
+            {currentUser ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  onClick={onOpenJayceePortal}
+                  style={{
+                    background: '#ffffff',
+                    border: '1.5px solid #0284c7',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer'
+                  }}
+                  title="Open Your SPA Dashboard"
+                >
+                  <img
+                    src={currentUser.avatar}
+                    alt={currentUser.fullName}
+                    style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                  <div style={{ textAlign: 'left', lineHeight: '1.2' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: '800', color: '#0f172a' }}>
+                      {currentUser.fullName.split(' ')[1] || currentUser.fullName}
+                    </div>
+                    <div style={{ fontSize: '0.65rem', fontWeight: '700', color: '#005696', textTransform: 'uppercase' }}>
+                      {currentUser.role === 'super_admin' ? 'Super Admin' : currentUser.role === 'president' ? 'President' : currentUser.role === 'officer' ? 'Officer' : 'Member'}
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={onOpenJayceePortal}
+                  style={{
+                    background: 'linear-gradient(135deg, #0284c7 0%, #004578 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '9px 14px',
+                    borderRadius: '8px',
+                    fontSize: '0.84rem',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)'
+                  }}
+                >
+                  <Briefcase size={15} color="#fde68a" />
+                  <span>Dashboard</span>
+                </button>
+
+                <button
+                  onClick={onLogout}
+                  style={{
+                    background: '#f8fafc',
+                    color: '#dc2626',
+                    border: '1px solid #fee2e2',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                  title="Sign out"
+                >
+                  <LogOut size={14} />
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Sign In Button */}
+                <button
+                  onClick={onOpenAuth}
+                  style={{
+                    background: '#f1f5f9',
+                    color: '#005696',
+                    border: '1px solid #cbd5e1',
+                    padding: '9px 15px',
+                    borderRadius: '8px',
+                    fontSize: '0.84rem',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <LogIn size={15} />
+                  <span>Sign In</span>
+                </button>
+
+                {/* Jaycee Hub (Web Module for All 4 Roles) */}
+                <button
+                  onClick={onOpenJayceePortal}
+                  style={{
+                    background: 'linear-gradient(135deg, #0284c7 0%, #004578 100%)',
+                    color: '#ffffff',
+                    border: '1px solid #38bdf8',
+                    padding: '9px 15px',
+                    borderRadius: '8px',
+                    fontSize: '0.84rem',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
+                    transition: 'all 0.2s'
+                  }}
+                  title="Open Web Module for Super Admin, President, Officers & Members"
+                >
+                  <Briefcase size={16} color="#fde68a" />
+                  <span>Jaycee Portal</span>
+                  <span style={{
+                    background: '#f59e0b',
+                    color: '#000000',
+                    fontSize: '0.65rem',
+                    fontWeight: '900',
+                    padding: '1px 6px',
+                    borderRadius: '10px'
+                  }}>
+                    4 Roles
+                  </span>
+                </button>
+              </>
+            )}
 
             {/* Admin Command Center */}
             <button

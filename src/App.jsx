@@ -15,6 +15,7 @@ import AdminApprovalQueueModal from './components/AdminApprovalQueueModal';
 import LogConnectModal from './components/LogConnectModal';
 import AdminPanel from './components/AdminPanel';
 import JayceeDashboard from './components/JayceeDashboard';
+import AuthModal from './components/AuthModal';
 
 import { PENDING_JAYCEE_APPLICATIONS, RECENT_CONNECT_FEED, BUSINESSES } from './data/mockData';
 
@@ -27,6 +28,17 @@ export default function App() {
   const [isLogConnectOpen, setIsLogConnectOpen] = useState(false);
   const [logConnectTargetBiz, setLogConnectTargetBiz] = useState(null);
 
+  // Authentication State with Persistence
+  const [authenticatedUser, setAuthenticatedUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('jci_auth_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
   // Dynamic state
   const [applications, setApplications] = useState(PENDING_JAYCEE_APPLICATIONS);
   const [connectFeed, setConnectFeed] = useState(RECENT_CONNECT_FEED);
@@ -34,6 +46,23 @@ export default function App() {
   const [liveCelebrationFlyer, setLiveCelebrationFlyer] = useState(null);
 
   const businessOfTheDay = customBizOfTheDay || BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0];
+
+  const handleLoginSuccess = (user) => {
+    setAuthenticatedUser(user);
+    try {
+      localStorage.setItem('jci_auth_user', JSON.stringify(user));
+    } catch {}
+    setIsAuthOpen(false);
+    setIsJayceePortalOpen(true);
+  };
+
+  const handleLogout = () => {
+    setAuthenticatedUser(null);
+    try {
+      localStorage.removeItem('jci_auth_user');
+    } catch {}
+    setIsJayceePortalOpen(false);
+  };
 
   const handleAddApplication = (newApp) => {
     setApplications(prev => [newApp, ...prev]);
@@ -57,7 +86,9 @@ export default function App() {
   if (isJayceePortalOpen) {
     return (
       <JayceeDashboard
+        authenticatedUser={authenticatedUser}
         onExitToWebsite={() => setIsJayceePortalOpen(false)}
+        onLogout={handleLogout}
         onSetBusinessOfTheDay={(biz) => setCustomBizOfTheDay(biz)}
         onPublishCelebrationToWebsite={(flyer) => setLiveCelebrationFlyer(flyer)}
       />
@@ -68,10 +99,19 @@ export default function App() {
     <div className="app-root">
       {/* Navigation Bar */}
       <Navbar
+        currentUser={authenticatedUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onLogout={handleLogout}
         onOpenRegister={() => setIsRegisterOpen(true)}
         onOpenAdminQueue={() => setIsAdminQueueOpen(true)}
         onOpenFullAdmin={() => setIsAdminPanelOpen(true)}
-        onOpenJayceePortal={() => setIsJayceePortalOpen(true)}
+        onOpenJayceePortal={() => {
+          if (!authenticatedUser) {
+            setIsAuthOpen(true);
+          } else {
+            setIsJayceePortalOpen(true);
+          }
+        }}
         pendingCount={pendingCount}
       />
 
@@ -168,6 +208,14 @@ export default function App() {
           preselectedBusiness={logConnectTargetBiz}
           onClose={() => setIsLogConnectOpen(false)}
           onAddConnect={handleAddConnect}
+        />
+      )}
+
+      {/* User Login & Signup Modal with Google OAuth 2.0 & Role Detection */}
+      {isAuthOpen && (
+        <AuthModal
+          onClose={() => setIsAuthOpen(false)}
+          onLoginSuccess={handleLoginSuccess}
         />
       )}
     </div>

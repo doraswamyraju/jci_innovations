@@ -457,7 +457,7 @@ export const SHOWCASE_SCHEDULE = [
   { date: 'Oct 8, 2026', businessId: 'biz-4', businessName: 'Seven Hills Chartered & Tax Advisors', chapter: 'JCI Tirupati Innovations', status: 'SCHEDULED' }
 ];
 
-// USER PERSONAS & ROLE-BASED PROFILES
+// USER PERSONAS & ROLE-BASED PROFILES WITH AUTHENTICATION
 export const DEMO_USERS = [
   {
     id: 'user-superadmin',
@@ -468,7 +468,8 @@ export const DEMO_USERS = [
     designation: 'Platform Super Admin & System Custodian',
     chapter: 'JCI Tirupati Innovations',
     phone: '+91 94401 11222',
-    email: 'superadmin@jcitirupati.org',
+    email: 'superadmin@innovations.com',
+    password: 'Super@2027',
     whatsapp: '919440111222',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     bloodGroup: 'O+ve',
@@ -497,7 +498,8 @@ export const DEMO_USERS = [
     designation: 'Chapter President (2026)',
     chapter: 'JCI Tirupati Innovations',
     phone: '+91 98490 55443',
-    email: 'president2026@jcitirupati.org',
+    email: 'admin@innovations.com',
+    password: 'Admin@2027',
     whatsapp: '919849055443',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
     bloodGroup: 'B+ve',
@@ -518,7 +520,7 @@ export const DEMO_USERS = [
     ]
   },
   {
-    id: 'user-secretary',
+    id: 'user-officer',
     role: 'officer',
     roleTitle: 'Officer - Chapter Secretary',
     fullName: 'Jc. Adv. S. Venkat Reddy',
@@ -526,7 +528,8 @@ export const DEMO_USERS = [
     designation: 'Secretary (2026)',
     chapter: 'JCI Tirupati Innovations',
     phone: '+91 98851 22334',
-    email: 'secretary@jcitirupati.org',
+    email: 'officer@innovations.com',
+    password: 'Officer@2027',
     whatsapp: '919885122334',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
     bloodGroup: 'A+ve',
@@ -555,7 +558,8 @@ export const DEMO_USERS = [
     designation: 'Treasurer (2026)',
     chapter: 'JCI Tirupati Innovations',
     phone: '+91 97000 34567',
-    email: 'treasurer@jcitirupati.org',
+    email: 'treasurer@innovations.com',
+    password: 'Treasurer@2027',
     whatsapp: '919700034567',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
     bloodGroup: 'B+ve',
@@ -584,7 +588,8 @@ export const DEMO_USERS = [
     designation: 'Active Member / Entrepreneur',
     chapter: 'JCI Tirupati Innovations',
     phone: '+91 98490 12345',
-    email: 'dinesh@srikrishnasoft.com',
+    email: 'member@innovations.com',
+    password: 'Member@2027',
     whatsapp: '919849012345',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80',
     bloodGroup: 'O+ve',

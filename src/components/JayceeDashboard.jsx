@@ -94,13 +94,15 @@ const CARD_THEMES = [
 ];
 
 export default function JayceeDashboard({ 
+  authenticatedUser,
   onExitToWebsite, 
+  onLogout,
   onSetBusinessOfTheDay,
   onPublishCelebrationToWebsite 
 }) {
-  // Current user persona (Role Switcher)
-  const [currentUser, setCurrentUser] = useState(DEMO_USERS[1]); // Default to President
-  const [activeTab, setActiveTab] = useState('leads'); // 'leads' | 'catalog' | 'vcard' | 'flyers' | 'assets' | 'accounts' | 'handover' | 'showcase' | 'calendar'
+  // Current user persona (Role Switcher & Logged-in session)
+  const [currentUser, setCurrentUser] = useState(authenticatedUser || DEMO_USERS[1]); // Default to President
+  const [activeTab, setActiveTab] = useState('leads'); // 'leads' | 'catalog' | 'vcard' | 'flyers' | 'assets' | 'accounts' | 'handover' | 'showcase' | 'calendar' | 'users'
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Dynamic state
@@ -111,6 +113,22 @@ export default function JayceeDashboard({
   const [calendarList, setCalendarList] = useState(CHAPTER_CALENDAR_ITEMS);
   const [scheduleList, setScheduleList] = useState(SHOWCASE_SCHEDULE);
   const [userProducts, setUserProducts] = useState(currentUser.products || []);
+  const [usersList, setUsersList] = useState(DEMO_USERS);
+
+  // Users management state
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('ALL');
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    role: 'member',
+    designation: 'Active Member / Entrepreneur',
+    password: 'Password@2027',
+    businessName: '',
+    businessCategory: 'Technology & Software'
+  });
 
   // UI state
   const [toastMessage, setToastMessage] = useState('');
@@ -142,6 +160,92 @@ export default function JayceeDashboard({
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
+  };
+
+  // User Management Handlers (Admin & Super Admin)
+  const handleCreateUser = (e) => {
+    e.preventDefault();
+    if (!newUserForm.fullName || !newUserForm.email) return;
+
+    const createdUser = {
+      id: `user-${Date.now()}`,
+      role: newUserForm.role,
+      roleTitle: newUserForm.role === 'president' 
+        ? 'Admin - Current Year President' 
+        : newUserForm.role === 'officer' 
+        ? 'Chapter Officer' 
+        : newUserForm.role === 'super_admin' 
+        ? 'Super Admin' 
+        : 'Member - Entrepreneur',
+      fullName: newUserForm.fullName.startsWith('Jc. ') ? newUserForm.fullName : `Jc. ${newUserForm.fullName}`,
+      membershipId: `JCI-TI-${Math.floor(1000 + Math.random() * 9000)}`,
+      designation: newUserForm.designation || 'Active Member / Entrepreneur',
+      chapter: 'JCI Tirupati Innovations',
+      phone: newUserForm.phone || '+91 98490 00000',
+      email: newUserForm.email,
+      password: newUserForm.password || 'Innovations@2027',
+      whatsapp: newUserForm.phone?.replace(/[^0-9]/g, '') || '919849000000',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+      bloodGroup: 'O+ve',
+      businessName: newUserForm.businessName || 'Jaycee Enterprise',
+      businessCategory: newUserForm.businessCategory || 'Technology & Software',
+      businessTagline: 'Professional Products & Services in Tirupati',
+      businessAddress: 'Tirupati, AP, India',
+      website: 'https://jcitirupati.org',
+      memberDiscount: '10% Exclusive Discount for Jaycees',
+      tenantEnabled: false,
+      cardTheme: 'royal-blue',
+      status: 'Active',
+      products: [
+        { name: 'Initial Business Consultation', price: 'Complimentary', desc: 'B2B discussion and matchmaking' }
+      ]
+    };
+
+    setUsersList([createdUser, ...usersList]);
+    setShowCreateUserModal(false);
+    setNewUserForm({
+      fullName: '',
+      email: '',
+      phone: '',
+      role: 'member',
+      designation: 'Active Member / Entrepreneur',
+      password: 'Password@2027',
+      businessName: '',
+      businessCategory: 'Technology & Software'
+    });
+    showToast(`✓ Added new user: ${createdUser.fullName} (${createdUser.roleTitle})`);
+  };
+
+  const handleUpdateUserRole = (userId, newRole, newDesignation) => {
+    setUsersList(prev => prev.map(u => {
+      if (u.id === userId) {
+        return {
+          ...u,
+          role: newRole,
+          designation: newDesignation || u.designation,
+          roleTitle: newRole === 'president' 
+            ? 'Admin - Current Year President' 
+            : newRole === 'officer' 
+            ? 'Chapter Officer' 
+            : newRole === 'super_admin' 
+            ? 'Super Admin' 
+            : 'Member - Entrepreneur'
+        };
+      }
+      return u;
+    }));
+    showToast('✓ Role & portfolio updated successfully!');
+  };
+
+  const handleToggleUserStatus = (userId) => {
+    setUsersList(prev => prev.map(u => {
+      if (u.id === userId) {
+        const nextStatus = u.status === 'Suspended' ? 'Active' : 'Suspended';
+        return { ...u, status: nextStatus };
+      }
+      return u;
+    }));
+    showToast('User account status updated.');
   };
 
   const handleSwitchUser = (user) => {
@@ -685,6 +789,42 @@ END:VCARD`;
               <span>Business of the Day</span>
             </button>
           )}
+
+          {/* Members & Officers Hub (Admin & Super Admin) */}
+          {canManageChapter && (
+            <button
+              onClick={() => { setActiveTab('users'); setMobileSidebarOpen(false); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: 'none',
+                background: activeTab === 'users' ? '#e0e7ff' : 'transparent',
+                color: activeTab === 'users' ? '#3730a3' : '#334155',
+                fontWeight: activeTab === 'users' ? '700' : '500',
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Users size={17} color={activeTab === 'users' ? '#4f46e5' : '#64748b'} />
+                <span>{isSuperAdmin ? 'Master Users Control' : 'Officers & Members'}</span>
+              </div>
+              <span style={{
+                background: '#e0e7ff',
+                color: '#3730a3',
+                fontSize: '0.68rem',
+                fontWeight: '700',
+                padding: '2px 7px',
+                borderRadius: '99px'
+              }}>
+                {usersList.length}
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Sidebar Footer: Exit to Public Website */}
@@ -767,6 +907,7 @@ END:VCARD`;
                 {activeTab === 'accounts' && 'Treasury Ledger & Dual-Signoff Accounts'}
                 {activeTab === 'handover' && 'Presidential Succession & Cabinet Appointments'}
                 {activeTab === 'showcase' && 'Business of the Day Showcase Scheduler'}
+                {activeTab === 'users' && (isSuperAdmin ? 'Master Users Control (Admins, Officers, Members)' : 'Chapter Officers & Members Management')}
               </h1>
               <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
                 Single Page Application • JCI Tirupati Innovations
@@ -833,6 +974,29 @@ END:VCARD`;
               <span>Public Site</span>
               <ExternalLink size={14} />
             </button>
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                style={{
+                  background: '#fee2e2',
+                  color: '#b91c1c',
+                  border: '1px solid #fecaca',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  fontSize: '0.8rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+                title="Sign out from session"
+              >
+                <LogOut size={14} />
+                <span>Logout</span>
+              </button>
+            )}
           </div>
         </header>
 
@@ -2129,67 +2293,473 @@ END:VCARD`;
           )}
 
           {/* ===================================================================
-              VIEW 9: CALENDAR & REMINDERS
+              VIEW 10: MEMBERS & OFFICERS MANAGEMENT (ADMIN & SUPER ADMIN)
              =================================================================== */}
-          {activeTab === 'calendar' && (
+          {activeTab === 'users' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
-                  Chapter Calendar & Reminders
-                </h2>
-                <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
-                  Board meetings, General Body meets, training workshops & project deadlines.
-                </p>
+              {/* Top Header Card */}
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                padding: '24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '14px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{
+                      background: isSuperAdmin ? '#f3e8ff' : '#e0f2fe',
+                      color: isSuperAdmin ? '#7e22ce' : '#0369a1',
+                      fontSize: '0.72rem',
+                      fontWeight: '800',
+                      padding: '3px 8px',
+                      borderRadius: '8px'
+                    }}>
+                      {isSuperAdmin ? 'SUPER ADMIN MASTER CONTROL' : 'PRESIDENTIAL GOVERNANCE'}
+                    </span>
+                  </div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
+                    {isSuperAdmin 
+                      ? 'Master Users Directory (Admins, Officers, Members)' 
+                      : 'Chapter Officers & Members Management'}
+                  </h2>
+                  <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
+                    {isSuperAdmin
+                      ? 'Full authority to create, promote, suspend, or reassign Presidents, Officers, and Jaycee Members.'
+                      : 'Appoint your cabinet officers (Secretary, Treasurer, VPs, Directors), induct new members, and manage chapter access.'}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowCreateUserModal(true)}
+                  style={{
+                    background: '#005696',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    fontSize: '0.82rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 6px rgba(0, 86, 150, 0.25)'
+                  }}
+                >
+                  <PlusCircle size={16} />
+                  <span>{isSuperAdmin ? 'Create New User' : 'Appoint Officer / Add Member'}</span>
+                </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '16px' }}>
-                {calendarList.map(item => (
-                  <div
-                    key={item.id}
+              {/* Search & Filter Bar */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '14px',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                {/* Search Input */}
+                <div style={{ position: 'relative', minWidth: '240px', flex: 1 }}>
+                  <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '10px' }} />
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, phone, or portfolio..."
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
                     style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '16px',
-                      padding: '18px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '10px'
+                      width: '100%',
+                      padding: '8px 12px 8px 36px',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      outline: 'none'
                     }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ background: '#e0f2fe', color: '#0284c7', fontSize: '0.7rem', fontWeight: '700', padding: '3px 8px', borderRadius: '8px' }}>
-                        {item.type.replace('_', ' ')}
-                      </span>
-                      {item.isMandatory && (
-                        <span style={{ background: '#fee2e2', color: '#dc2626', fontSize: '0.68rem', fontWeight: '700', padding: '2px 6px', borderRadius: '8px' }}>
-                          Mandatory
-                        </span>
-                      )}
-                    </div>
+                  />
+                </div>
 
-                    <h4 style={{ fontSize: '1rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>
-                      {item.title}
-                    </h4>
+                {/* Role Filter Pills */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {[
+                    { id: 'ALL', label: 'All Users' },
+                    { id: 'super_admin', label: 'Super Admin' },
+                    { id: 'president', label: 'President (Admin)' },
+                    { id: 'officer', label: 'Officers' },
+                    { id: 'member', label: 'Members' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setUserRoleFilter(tab.id)}
+                      style={{
+                        background: userRoleFilter === tab.id ? '#005696' : '#f8fafc',
+                        color: userRoleFilter === tab.id ? '#ffffff' : '#475569',
+                        border: '1px solid ' + (userRoleFilter === tab.id ? '#005696' : '#e2e8f0'),
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontSize: '0.76rem',
+                        fontWeight: '700',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                    <div style={{ fontSize: '0.8rem', color: '#005696', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Clock size={14} />
-                      <span>{item.date} • {item.time}</span>
-                    </div>
+              {/* Users Table */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '20px',
+                overflowX: 'auto',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+              }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
+                      <th style={{ padding: '12px 10px' }}>Jaycee Member</th>
+                      <th style={{ padding: '12px 10px' }}>Contact & Login</th>
+                      <th style={{ padding: '12px 10px' }}>Role</th>
+                      <th style={{ padding: '12px 10px' }}>Portfolio / Designation</th>
+                      <th style={{ padding: '12px 10px' }}>Status</th>
+                      <th style={{ padding: '12px 10px' }}>Action & Governance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usersList
+                      .filter(user => {
+                        const matches = 
+                          user.fullName.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+                          user.email.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+                          user.phone?.includes(userSearchQuery) ||
+                          user.designation?.toLowerCase().includes(userSearchQuery.toLowerCase());
+                        if (userRoleFilter === 'ALL') return matches;
+                        return matches && user.role === userRoleFilter;
+                      })
+                      .map(user => {
+                        const isSuperAdminRow = user.role === 'super_admin';
+                        const isPresidentRow = user.role === 'president';
+                        const isOfficerRow = user.role === 'officer';
+                        const canModifyThisUser = isSuperAdmin || (isPresident && !isSuperAdminRow);
 
-                    <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                      📍 {item.venue}
-                    </div>
+                        return (
+                          <tr key={user.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            {/* Member info */}
+                            <td style={{ padding: '14px 10px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <img
+                                  src={user.avatar}
+                                  alt={user.fullName}
+                                  style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                                <div>
+                                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{user.fullName}</div>
+                                  <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                                    {user.membershipId} • {user.chapter}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
 
-                    <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0 }}>
-                      Agenda: {item.agenda}
-                    </p>
-                  </div>
-                ))}
+                            {/* Contact info */}
+                            <td style={{ padding: '14px 10px' }}>
+                              <div style={{ fontWeight: '600', color: '#005696' }}>{user.email}</div>
+                              <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{user.phone}</div>
+                            </td>
+
+                            {/* Role Badge */}
+                            <td style={{ padding: '14px 10px' }}>
+                              <span style={{
+                                background: isSuperAdminRow 
+                                  ? '#f3e8ff' 
+                                  : isPresidentRow 
+                                  ? '#fef3c7' 
+                                  : isOfficerRow 
+                                  ? '#e0f2fe' 
+                                  : '#d1fae5',
+                                color: isSuperAdminRow 
+                                  ? '#7e22ce' 
+                                  : isPresidentRow 
+                                  ? '#92400e' 
+                                  : isOfficerRow 
+                                  ? '#0369a1' 
+                                  : '#065f46',
+                                padding: '3px 10px',
+                                borderRadius: '12px',
+                                fontSize: '0.72rem',
+                                fontWeight: '800',
+                                textTransform: 'uppercase'
+                              }}>
+                                {user.role === 'super_admin' ? 'Super Admin' : user.role === 'president' ? 'President' : user.role === 'officer' ? 'Officer' : 'Member'}
+                              </span>
+                            </td>
+
+                            {/* Portfolio Designation */}
+                            <td style={{ padding: '14px 10px' }}>
+                              <div style={{ fontWeight: '600', color: '#334155' }}>
+                                {user.designation}
+                              </div>
+                              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                                {user.businessName}
+                              </div>
+                            </td>
+
+                            {/* Status */}
+                            <td style={{ padding: '14px 10px' }}>
+                              <span style={{
+                                background: user.status === 'Suspended' ? '#fee2e2' : '#d1fae5',
+                                color: user.status === 'Suspended' ? '#991b1b' : '#065f46',
+                                padding: '2px 8px',
+                                borderRadius: '8px',
+                                fontSize: '0.7rem',
+                                fontWeight: '700'
+                              }}>
+                                {user.status || 'Active'}
+                              </span>
+                            </td>
+
+                            {/* Actions */}
+                            <td style={{ padding: '14px 10px' }}>
+                              {canModifyThisUser ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  {/* Quick Portfolio Reassign Dropdown */}
+                                  <select
+                                    value={user.role}
+                                    onChange={(e) => {
+                                      const nextRole = e.target.value;
+                                      let nextDesig = user.designation;
+                                      if (nextRole === 'officer' && user.role !== 'officer') nextDesig = 'Director (Portfolio)';
+                                      if (nextRole === 'member') nextDesig = 'Active Member / Entrepreneur';
+                                      if (nextRole === 'president') nextDesig = 'Chapter President (2026)';
+                                      if (nextRole === 'super_admin') nextDesig = 'Platform Super Admin';
+                                      handleUpdateUserRole(user.id, nextRole, nextDesig);
+                                    }}
+                                    style={{
+                                      background: '#f8fafc',
+                                      border: '1px solid #cbd5e1',
+                                      borderRadius: '6px',
+                                      padding: '4px 6px',
+                                      fontSize: '0.72rem',
+                                      fontWeight: '600',
+                                      outline: 'none',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    {isSuperAdmin && <option value="super_admin">Super Admin</option>}
+                                    {isSuperAdmin && <option value="president">President (Admin)</option>}
+                                    <option value="officer">Chapter Officer</option>
+                                    <option value="member">General Member</option>
+                                  </select>
+
+                                  <button
+                                    onClick={() => handleToggleUserStatus(user.id)}
+                                    style={{
+                                      background: user.status === 'Suspended' ? '#dcfce7' : '#f1f5f9',
+                                      color: user.status === 'Suspended' ? '#15803d' : '#64748b',
+                                      border: '1px solid #cbd5e1',
+                                      padding: '4px 8px',
+                                      borderRadius: '6px',
+                                      fontSize: '0.72rem',
+                                      fontWeight: '600',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    {user.status === 'Suspended' ? 'Activate' : 'Suspend'}
+                                  </button>
+                                </div>
+                              ) : (
+                                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                                  Protected Master
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
         </main>
       </div>
+
+      {/* =========================================================================
+          SUB-MODAL: CREATE NEW USER / APPOINT OFFICER
+         ========================================================================= */}
+      {showCreateUserModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1250,
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '18px',
+            width: '100%',
+            maxWidth: '500px',
+            padding: '24px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                  {isSuperAdmin ? 'Create New System User' : 'Appoint Officer / Add Member'}
+                </h3>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  Assign role, official portfolio & login credentials
+                </span>
+              </div>
+              <button onClick={() => setShowCreateUserModal(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. S. Karthik Reddy"
+                  value={newUserForm.fullName}
+                  onChange={(e) => setNewUserForm({ ...newUserForm, fullName: e.target.value })}
+                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>
+                    Email (Login ID)
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@innovations.com"
+                    value={newUserForm.email}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>
+                    Password
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Min 6 characters"
+                    value={newUserForm.password}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>
+                    Assign Role
+                  </label>
+                  <select
+                    value={newUserForm.role}
+                    onChange={(e) => {
+                      const nextR = e.target.value;
+                      let des = 'Active Member / Entrepreneur';
+                      if (nextR === 'officer') des = 'Secretary (2026)';
+                      if (nextR === 'president') des = 'Chapter President (2026)';
+                      if (nextR === 'super_admin') des = 'Platform Super Admin';
+                      setNewUserForm({ ...newUserForm, role: nextR, designation: des });
+                    }}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    {isSuperAdmin && <option value="super_admin">Super Admin</option>}
+                    {isSuperAdmin && <option value="president">Admin (President)</option>}
+                    <option value="officer">Chapter Officer</option>
+                    <option value="member">Jaycee Member</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>
+                    Portfolio Designation
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Secretary / VP Business"
+                    value={newUserForm.designation}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, designation: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="+91 98490 12345"
+                    value={newUserForm.phone}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, phone: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>
+                    Enterprise Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Company name"
+                    value={newUserForm.businessName}
+                    onChange={(e) => setNewUserForm({ ...newUserForm, businessName: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateUserModal(false)}
+                  style={{ flex: 1, background: '#f1f5f9', border: 'none', color: '#475569', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ flex: 1, background: '#005696', border: 'none', color: '#ffffff', padding: '9px', borderRadius: '8px', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  Confirm & Create
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================================
           SUB-MODAL: LOG NEW LEAD
