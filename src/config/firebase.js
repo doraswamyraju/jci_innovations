@@ -5,12 +5,12 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 // Your web app's Firebase configuration
 // These can be configured in your .env file or updated directly here
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDummyKeyForInnovationsJaycees",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "jci-tirupati-innovations.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "jci-tirupati-innovations",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "jci-tirupati-innovations.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1234567890",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1234567890:web:abcdef123456"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDvPrVZseB6fu1EJ3jtBlLPlkx4d7gNYLc",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "innovations-25dd2.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "innovations-25dd2",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "innovations-25dd2.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "890440322350",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:890440322350:web:0d38afacccdd67ae00bebf"
 };
 
 // Initialize Firebase safely
