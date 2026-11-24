@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import JciLogo from './JciLogo';
 import { DEMO_USERS } from '../data/mockData';
+import { signInWithGoogle } from '../config/firebase';
 
 export default function AuthModal({ onClose, onLoginSuccess }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'signup'
@@ -65,49 +66,26 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
     }, 200);
   };
 
-  // Google OAuth 2.0 Handler
-  const handleGoogleOAuth = () => {
+  // Google OAuth 2.0 Handler with Firebase
+  const handleGoogleOAuth = async () => {
     setIsGoogleLoading(true);
     setErrorMsg('');
 
-    // Google OAuth 2.0 Client Guidelines:
-    // Opens a pop-up window or redirects to Google OAuth endpoint.
-    // In production, clientId and redirect_uri are configured via Google Cloud Console:
-    // const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri=${encodeURIComponent(window.location.origin + '/oauth/callback')}&response_type=token&scope=email%20profile`;
-    
-    // Smooth user experience simulation with account selection:
-    setTimeout(() => {
+    try {
+      const response = await signInWithGoogle();
       setIsGoogleLoading(false);
-      // Automatically detect and log in as verified member with Google profile
-      const googleUser = {
-        id: 'user-google-oauth',
-        role: 'member',
-        roleTitle: 'Verified Google Jaycee Member',
-        fullName: 'Jc. Google Verified Member',
-        membershipId: 'JCI-GOOGLE-OAUTH',
-        designation: 'Entrepreneur / Jaycee Member',
-        chapter: 'JCI Tirupati Innovations',
-        phone: '+91 98490 12345',
-        email: 'google.jaycee@gmail.com',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80',
-        bloodGroup: 'B+ve',
-        birthday: '15 June',
-        anniversary: '10 December',
-        businessName: 'NextGen Digital Ventures',
-        businessCategory: 'Technology & Software',
-        businessTagline: 'Cloud Services & AI Automation',
-        businessAddress: 'AIR Bypass Road, Tirupati',
-        website: 'https://nextgendigital.example.com',
-        memberDiscount: '15% Discount on Cloud Deployments for Jaycees',
-        tenantEnabled: true,
-        cardTheme: 'royal-blue',
-        products: [
-          { name: 'AI Business Automation Suite', price: '₹ 40,000', desc: 'Custom LLM workflows & customer chat systems' },
-          { name: 'Cloud Migration & Security', price: '₹ 25,000', desc: 'Secure cloud backups & SSL deployments' }
-        ]
-      };
-      onLoginSuccess(googleUser);
-    }, 1200);
+      onLoginSuccess(response.user);
+    } catch (err) {
+      setIsGoogleLoading(false);
+      console.error(err);
+      if (err.code === 'auth/unauthorized-domain') {
+        setErrorMsg('Domain not authorized in Firebase! Please add "innovations.sriddha.com" to Firebase Console -> Authentication -> Settings -> Authorized Domains.');
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        setErrorMsg('Google login popup was closed. Please try again.');
+      } else {
+        setErrorMsg(err.message || 'Failed to authenticate with Google OAuth. Check Firebase configuration.');
+      }
+    }
   };
 
   // Handle Signup
