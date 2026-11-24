@@ -170,19 +170,52 @@ export default function JayceeDashboard({
   const [usersList, setUsersList] = useState(() => {
     const raw = loadStoredData('jci_users', null);
     let list = Array.isArray(raw) && raw.length > 0 ? raw : [...DEMO_USERS];
+
+    // Normalize any google user that was temporarily marked as super_admin so they are primarily members
+    list = list.map(u => {
+      if ((u.id?.startsWith('google-') || u.email?.includes('rajugariventures')) && u.role === 'super_admin') {
+        return {
+          ...u,
+          role: 'member',
+          roleTitle: 'Member - Entrepreneur',
+          designation: 'Active Member / Entrepreneur'
+        };
+      }
+      return u;
+    });
+
     const sessionUser = authenticatedUser || loadStoredData('jci_auth_user', null);
     if (sessionUser && sessionUser.email) {
       const emailLower = sessionUser.email.toLowerCase();
+      const existing = list.find(u => (u.email && u.email.toLowerCase() === emailLower) || u.id === sessionUser.id);
+      
+      const normalizedSessionUser = {
+        ...sessionUser,
+        role: existing?.role || sessionUser.role || 'member',
+        roleTitle: existing?.roleTitle || sessionUser.roleTitle || 'Member - Entrepreneur',
+        designation: existing?.designation || sessionUser.designation || 'Active Member / Entrepreneur'
+      };
+
+      if ((normalizedSessionUser.id?.startsWith('google-') || normalizedSessionUser.email?.includes('rajugariventures')) && normalizedSessionUser.role === 'super_admin') {
+        normalizedSessionUser.role = 'member';
+        normalizedSessionUser.roleTitle = 'Member - Entrepreneur';
+        normalizedSessionUser.designation = 'Active Member / Entrepreneur';
+      }
+
       const idx = list.findIndex(u => (u.email && u.email.toLowerCase() === emailLower) || u.id === sessionUser.id);
       if (idx >= 0) {
-        list[idx] = { ...list[idx], ...sessionUser };
+        list[idx] = { ...list[idx], ...normalizedSessionUser };
       } else {
-        list = [sessionUser, ...list];
+        list = [normalizedSessionUser, ...list];
       }
+      saveStoredData('jci_auth_user', normalizedSessionUser);
       saveStoredData('jci_users', list);
     }
     return list;
   });
+
+  // Chapter Roster excludes platform Super Admin from the Admin Panel
+  const chapterMembersList = usersList.filter(user => user.role !== 'super_admin');
 
   // Sync state changes to localStorage
   useEffect(() => { saveStoredData('jci_leads', leadsList); }, [leadsList]);
@@ -196,28 +229,47 @@ export default function JayceeDashboard({
   // Synchronize authenticatedUser prop into currentUser and usersList
   useEffect(() => {
     if (authenticatedUser) {
-      setCurrentUser(authenticatedUser);
-      setUserProducts(authenticatedUser.products || []);
-      setCardThemeId(authenticatedUser.cardTheme || 'royal-blue');
-      setTenantActive(authenticatedUser.tenantEnabled || false);
+      // Ensure Google users register as member unless an officer position was allotted
+      const existingInList = usersList.find(u => 
+        (u.email && authenticatedUser.email && u.email.toLowerCase() === authenticatedUser.email.toLowerCase()) || 
+        u.id === authenticatedUser.id
+      );
+
+      const resolvedUser = {
+        ...authenticatedUser,
+        role: existingInList?.role || authenticatedUser.role || 'member',
+        roleTitle: existingInList?.roleTitle || authenticatedUser.roleTitle || 'Member - Entrepreneur',
+        designation: existingInList?.designation || authenticatedUser.designation || 'Active Member / Entrepreneur'
+      };
+
+      if ((resolvedUser.id?.startsWith('google-') || resolvedUser.email?.includes('rajugariventures')) && resolvedUser.role === 'super_admin') {
+        resolvedUser.role = 'member';
+        resolvedUser.roleTitle = 'Member - Entrepreneur';
+        resolvedUser.designation = 'Active Member / Entrepreneur';
+      }
+
+      setCurrentUser(resolvedUser);
+      setUserProducts(resolvedUser.products || []);
+      setCardThemeId(resolvedUser.cardTheme || 'royal-blue');
+      setTenantActive(resolvedUser.tenantEnabled || false);
 
       setUsersList(prev => {
-        const emailLower = authenticatedUser.email?.toLowerCase();
+        const emailLower = resolvedUser.email?.toLowerCase();
         const exists = prev.some(u => 
-          (emailLower && u.email?.toLowerCase() === emailLower) || u.id === authenticatedUser.id
+          (emailLower && u.email?.toLowerCase() === emailLower) || u.id === resolvedUser.id
         );
         let updated;
         if (exists) {
           updated = prev.map(u => 
-            ((emailLower && u.email?.toLowerCase() === emailLower) || u.id === authenticatedUser.id)
-              ? { ...u, ...authenticatedUser }
+            ((emailLower && u.email?.toLowerCase() === emailLower) || u.id === resolvedUser.id)
+              ? { ...u, ...resolvedUser }
               : u
           );
         } else {
-          updated = [authenticatedUser, ...prev];
+          updated = [resolvedUser, ...prev];
         }
         saveStoredData('jci_users', updated);
-        DatabaseService.saveUser(authenticatedUser, prev);
+        DatabaseService.saveUser(resolvedUser, prev);
         return updated;
       });
     }
@@ -415,23 +467,32 @@ export default function JayceeDashboard({
   };
 
   const handleUpdateUserRole = (userId, newRole, newDesignation) => {
-    setUsersList(prev => prev.map(u => {
-      if (u.id === userId) {
-        return {
-          ...u,
-          role: newRole,
-          designation: newDesignation || u.designation,
-          roleTitle: newRole === 'president' 
-            ? 'Admin - Current Year President' 
-            : newRole === 'officer' 
-            ? 'Chapter Officer' 
-            : newRole === 'super_admin' 
-            ? 'Super Admin' 
-            : 'Member - Entrepreneur'
-        };
-      }
-      return u;
-    }));
+    setUsersList(prev => {
+      const updated = prev.map(u => {
+        if (u.id === userId) {
+          const updatedUser = {
+            ...u,
+            role: newRole,
+            designation: newDesignation || u.designation,
+            roleTitle: newRole === 'president' 
+              ? 'Admin - Current Year President' 
+              : newRole === 'officer' 
+              ? 'Chapter Officer' 
+              : 'Member - Entrepreneur'
+          };
+          if (currentUser.id === userId) {
+            setCurrentUser(updatedUser);
+            saveStoredData('jci_auth_user', updatedUser);
+          }
+          return updatedUser;
+        }
+        return u;
+      });
+      saveStoredData('jci_users', updated);
+      const changed = updated.find(u => u.id === userId);
+      if (changed) DatabaseService.saveUser(changed, prev);
+      return updated;
+    });
     showToast('✓ Role & portfolio updated successfully!');
   };
 
@@ -534,9 +595,18 @@ export default function JayceeDashboard({
   const handleEditUserSubmit = (e) => {
     e.preventDefault();
     if (!editingUser) return;
-    setUsersList(prev => prev.map(u => u.id === editingUser.id ? editingUser : u));
+    setUsersList(prev => {
+      const updated = prev.map(u => u.id === editingUser.id ? editingUser : u);
+      saveStoredData('jci_users', updated);
+      DatabaseService.updateUser(editingUser, prev);
+      return updated;
+    });
+    if (currentUser.id === editingUser.id || (currentUser.email && editingUser.email && currentUser.email.toLowerCase() === editingUser.email.toLowerCase())) {
+      setCurrentUser(editingUser);
+      saveStoredData('jci_auth_user', editingUser);
+    }
     setShowEditUserModal(false);
-    showToast(`✓ Updated profile for ${editingUser.fullName}`);
+    showToast(`✓ Updated profile & chapter portfolio for ${editingUser.fullName}`);
   };
 
   const handleDeleteUser = (userId) => {
@@ -709,7 +779,7 @@ export default function JayceeDashboard({
       { label: 'Blood Group', key: 'bloodGroup' },
       { label: 'Status', key: 'status' }
     ];
-    exportToCSV('JCI_Innovations_Members_Roster', headers, usersList);
+    exportToCSV('JCI_Innovations_Members_Roster', headers, chapterMembersList);
     showToast('✓ Members Roster exported to CSV!');
   };
 
@@ -1247,7 +1317,7 @@ END:VCARD`;
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Users size={17} color={activeTab === 'users' ? '#4f46e5' : '#64748b'} />
-                <span>{isSuperAdmin ? 'Master Users Control' : 'Officers & Members'}</span>
+                <span>Officers & Members</span>
               </div>
               <span style={{
                 background: '#e0e7ff',
@@ -1257,7 +1327,7 @@ END:VCARD`;
                 padding: '2px 7px',
                 borderRadius: '99px'
               }}>
-                {usersList.length}
+                {chapterMembersList.length}
               </span>
             </button>
           )}
@@ -1343,7 +1413,7 @@ END:VCARD`;
                 {activeTab === 'accounts' && 'Treasury Ledger & Dual-Signoff Accounts'}
                 {activeTab === 'handover' && 'Presidential Succession & Cabinet Appointments'}
                 {activeTab === 'showcase' && 'Business of the Day Showcase Scheduler'}
-                {activeTab === 'users' && (isSuperAdmin ? 'Master Users Control (Admins, Officers, Members)' : 'Chapter Officers & Members Management')}
+                {activeTab === 'users' && 'Chapter Officers & Members Management'}
               </h1>
               <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
                 Single Page Application • JCI Tirupati Innovations
@@ -3516,25 +3586,21 @@ END:VCARD`;
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span style={{
-                      background: isSuperAdmin ? '#f3e8ff' : '#e0f2fe',
-                      color: isSuperAdmin ? '#7e22ce' : '#0369a1',
+                      background: '#e0f2fe',
+                      color: '#0369a1',
                       fontSize: '0.72rem',
                       fontWeight: '800',
                       padding: '3px 8px',
                       borderRadius: '8px'
                     }}>
-                      {isSuperAdmin ? 'SUPER ADMIN MASTER CONTROL' : 'PRESIDENTIAL GOVERNANCE'}
+                      PRESIDENTIAL GOVERNANCE
                     </span>
                   </div>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
-                    {isSuperAdmin 
-                      ? 'Master Users Directory (Admins, Officers, Members)' 
-                      : 'Chapter Officers & Members Management'}
+                    Chapter Officers & Members Management
                   </h2>
                   <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
-                    {isSuperAdmin
-                      ? 'Full authority to create, promote, suspend, or reassign Presidents, Officers, and Jaycee Members.'
-                      : 'Appoint your cabinet officers (Secretary, Treasurer, VPs, Directors), induct new members, and manage chapter access.'}
+                    Appoint your cabinet officers (Secretary, Treasurer, VPs, Directors), induct new members, and manage chapter access.
                   </p>
                 </div>
 
@@ -3576,7 +3642,7 @@ END:VCARD`;
                     }}
                   >
                     <PlusCircle size={16} />
-                    <span>{isSuperAdmin ? 'Create New User' : 'Appoint Officer / Add Member'}</span>
+                    <span>Appoint Officer / Add Member</span>
                   </button>
                 </div>
               </div>
@@ -3585,20 +3651,22 @@ END:VCARD`;
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
                 <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                   <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>TOTAL CHAPTER STRENGTH</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#005696', margin: '4px 0' }}>{usersList.length} Members</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#005696', margin: '4px 0' }}>
+                    {chapterMembersList.length} Members
+                  </div>
                   <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>✓ Verified Jaycees</div>
                 </div>
                 <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                   <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>CABINET OFFICERS</div>
                   <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#7c3aed', margin: '4px 0' }}>
-                    {usersList.filter(u => u.role === 'officer' || u.role === 'president').length} Leaders
+                    {chapterMembersList.filter(u => u.role === 'officer' || u.role === 'president').length} Leaders
                   </div>
                   <div style={{ fontSize: '0.72rem', color: '#7c3aed', fontWeight: '600' }}>President, Secretary, Treasurer</div>
                 </div>
                 <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                   <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>ACTIVE GOOD STANDING</div>
                   <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#059669', margin: '4px 0' }}>
-                    {usersList.filter(u => u.status !== 'Suspended').length} Active
+                    {chapterMembersList.filter(u => u.status !== 'Suspended').length} Active
                   </div>
                   <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>100% Operational Status</div>
                 </div>
@@ -3640,11 +3708,10 @@ END:VCARD`;
                   />
                 </div>
 
-                {/* Role Filter Pills */}
+                {/* Role Filter Pills (Super Admin removed) */}
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {[
-                    { id: 'ALL', label: 'All Users' },
-                    { id: 'super_admin', label: 'Super Admin' },
+                    { id: 'ALL', label: 'All Members' },
                     { id: 'president', label: 'President (Admin)' },
                     { id: 'officer', label: 'Officers' },
                     { id: 'member', label: 'Members' }
@@ -3690,7 +3757,7 @@ END:VCARD`;
                     </tr>
                   </thead>
                   <tbody>
-                    {usersList
+                    {chapterMembersList
                       .filter(user => {
                         const matches = 
                           user.fullName.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
@@ -3810,7 +3877,6 @@ END:VCARD`;
                                       if (nextRole === 'officer' && user.role !== 'officer') nextDesig = 'Director (Portfolio)';
                                       if (nextRole === 'member') nextDesig = 'Active Member / Entrepreneur';
                                       if (nextRole === 'president') nextDesig = 'Chapter President (2026)';
-                                      if (nextRole === 'super_admin') nextDesig = 'Platform Super Admin';
                                       handleUpdateUserRole(user.id, nextRole, nextDesig);
                                     }}
                                     style={{
@@ -3824,10 +3890,9 @@ END:VCARD`;
                                       cursor: 'pointer'
                                     }}
                                   >
-                                    {isSuperAdmin && <option value="super_admin">Super Admin</option>}
-                                    {isSuperAdmin && <option value="president">President (Admin)</option>}
-                                    <option value="officer">Chapter Officer</option>
                                     <option value="member">General Member</option>
+                                    <option value="officer">Chapter Officer</option>
+                                    <option value="president">President (Admin)</option>
                                   </select>
 
                                   <button
@@ -3998,15 +4063,13 @@ END:VCARD`;
                       let des = 'Active Member / Entrepreneur';
                       if (nextR === 'officer') des = 'Secretary (2026)';
                       if (nextR === 'president') des = 'Chapter President (2026)';
-                      if (nextR === 'super_admin') des = 'Platform Super Admin';
                       setNewUserForm({ ...newUserForm, role: nextR, designation: des });
                     }}
                     style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
                   >
-                    {isSuperAdmin && <option value="super_admin">Super Admin</option>}
-                    {isSuperAdmin && <option value="president">Admin (President)</option>}
-                    <option value="officer">Chapter Officer</option>
                     <option value="member">Jaycee Member</option>
+                    <option value="officer">Chapter Officer</option>
+                    <option value="president">Admin (President)</option>
                   </select>
                 </div>
                 <div>
@@ -4356,14 +4419,60 @@ END:VCARD`;
                 </div>
               </div>
 
-              <div>
-                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Portfolio / Designation</label>
-                <input
-                  type="text"
-                  value={editingUser.designation}
-                  onChange={(e) => setEditingUser({ ...editingUser, designation: e.target.value })}
-                  style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Allot Chapter Role</label>
+                  <select
+                    value={editingUser.role}
+                    onChange={(e) => {
+                      const nextR = e.target.value;
+                      let des = editingUser.designation;
+                      let rTitle = 'Member - Entrepreneur';
+                      if (nextR === 'officer') {
+                        des = editingUser.designation?.includes('Director') || editingUser.designation?.includes('Secretary') || editingUser.designation?.includes('Treasurer') || editingUser.designation?.includes('President')
+                          ? editingUser.designation
+                          : 'Secretary (2026)';
+                        rTitle = 'Chapter Officer';
+                      } else if (nextR === 'president') {
+                        des = 'Chapter President (2026)';
+                        rTitle = 'Admin - Current Year President';
+                      } else {
+                        des = 'Active Member / Entrepreneur';
+                        rTitle = 'Member - Entrepreneur';
+                      }
+                      setEditingUser({ ...editingUser, role: nextR, designation: des, roleTitle: rTitle });
+                    }}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                  >
+                    <option value="member">General Member</option>
+                    <option value="officer">Chapter Officer</option>
+                    <option value="president">President (Admin)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: '700' }}>Portfolio / Designation</label>
+                  <input
+                    type="text"
+                    list="cabinet-positions-list"
+                    value={editingUser.designation}
+                    onChange={(e) => setEditingUser({ ...editingUser, designation: e.target.value })}
+                    style={{ width: '100%', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 12px', fontSize: '0.84rem' }}
+                    placeholder="e.g. Secretary (2026) / VP Business"
+                  />
+                  <datalist id="cabinet-positions-list">
+                    <option value="Secretary (2026)" />
+                    <option value="Treasurer (2026)" />
+                    <option value="Vice President (Management & Growth)" />
+                    <option value="Vice President (Business Development)" />
+                    <option value="Vice President (Individual Development)" />
+                    <option value="Vice President (Community Action)" />
+                    <option value="Vice President (International)" />
+                    <option value="Director (Programs & Events)" />
+                    <option value="Director (Youth & Sports)" />
+                    <option value="Director (Public Relations & Media)" />
+                    <option value="Active Member / Entrepreneur" />
+                  </datalist>
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px' }}>

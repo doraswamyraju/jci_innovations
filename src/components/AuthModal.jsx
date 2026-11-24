@@ -78,29 +78,43 @@ export default function AuthModal({ onClose, onLoginSuccess }) {
       setIsGoogleLoading(false);
       const googleUser = response.user;
 
-      // Automatically register and persist into Chapter Database & Members Directory
+      // Automatically register and persist into Chapter Database & Members Directory as a Member
       const existingUsers = loadStoredData('jci_users', DEMO_USERS);
       const emailLower = googleUser.email?.toLowerCase();
-      const userExists = existingUsers.some(u => 
+      const existingMatch = existingUsers.find(u => 
         (emailLower && u.email?.toLowerCase() === emailLower) || u.id === googleUser.id
       );
 
+      // Default role is member. If admin previously allotted an officer position, preserve it!
+      const userToSave = existingMatch ? {
+        ...googleUser,
+        role: existingMatch.role || 'member',
+        roleTitle: existingMatch.roleTitle || 'Member - Entrepreneur',
+        designation: existingMatch.designation || 'Active Member / Entrepreneur',
+        membershipId: existingMatch.membershipId || googleUser.membershipId
+      } : {
+        ...googleUser,
+        role: 'member',
+        roleTitle: 'Member - Entrepreneur',
+        designation: 'Active Member / Entrepreneur'
+      };
+
       let updatedUsers;
-      if (userExists) {
+      if (existingMatch) {
         updatedUsers = existingUsers.map(u => 
           ((emailLower && u.email?.toLowerCase() === emailLower) || u.id === googleUser.id)
-            ? { ...u, ...googleUser }
+            ? { ...u, ...userToSave }
             : u
         );
       } else {
-        updatedUsers = [googleUser, ...existingUsers];
+        updatedUsers = [userToSave, ...existingUsers];
       }
 
       saveStoredData('jci_users', updatedUsers);
-      saveStoredData('jci_auth_user', googleUser);
-      DatabaseService.saveUser(googleUser, existingUsers);
+      saveStoredData('jci_auth_user', userToSave);
+      DatabaseService.saveUser(userToSave, existingUsers);
 
-      onLoginSuccess(googleUser);
+      onLoginSuccess(userToSave);
     } catch (err) {
       setIsGoogleLoading(false);
       console.error(err);

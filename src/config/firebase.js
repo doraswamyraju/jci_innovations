@@ -34,27 +34,26 @@ googleProvider.setCustomParameters({
 export async function signInWithGoogle() {
   // Check if real API key is configured
   if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('DummyKey')) {
-    // If not yet configured with real Firebase credentials, return demo user
+    // If not yet configured with real Firebase credentials, return demo member user
     return {
       isDemo: true,
       user: {
         id: 'user-google-oauth',
-        role: 'super_admin',
-        roleTitle: 'Super Admin',
+        role: 'member',
+        roleTitle: 'Member - Entrepreneur',
         fullName: 'Jc. Rajugari Ventures',
         email: 'rajugariventures@gmail.com',
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
         chapter: 'JCI Tirupati Innovations',
-        designation: 'Chapter President & Super Admin (2026)',
+        designation: 'Active Member / Entrepreneur',
         phone: '+91 94401 11222',
         businessName: 'Rajugari Ventures',
         businessCategory: 'Technology & Software',
-        membershipId: 'JCI-TI-SA-001',
+        membershipId: 'JCI-TI-M108',
         bloodGroup: 'O+ve',
         status: 'Active',
         products: [
-          { name: 'Custom Cloud Architecture & ERP', price: '₹ 45,000+', desc: 'High availability scalable enterprise software' },
-          { name: 'Digital Transformation Retainer', price: '₹ 25,000/mo', desc: 'Managed web platforms and cloud automation' }
+          { name: 'Initial Business Consultation', price: 'Complimentary', desc: 'B2B discussion & entrepreneurial matchmaking' }
         ]
       }
     };
@@ -63,29 +62,28 @@ export async function signInWithGoogle() {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
-    const displayName = user.displayName || 'Rajugari Ventures';
+    const displayName = user.displayName || 'Jaycee Member';
     const formattedName = displayName.startsWith('Jc. ') ? displayName : `Jc. ${displayName}`;
 
     return {
       isDemo: false,
       user: {
         id: `google-${user.uid}`,
-        role: 'super_admin',
-        roleTitle: 'Super Admin',
+        role: 'member',
+        roleTitle: 'Member - Entrepreneur',
         fullName: formattedName,
         email: user.email,
         avatar: user.photoURL || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
         chapter: 'JCI Tirupati Innovations',
-        designation: 'Chapter President & Super Admin (2026)',
-        phone: user.phoneNumber || '+91 94401 11222',
+        designation: 'Active Member / Entrepreneur',
+        phone: user.phoneNumber || '+91 98490 12345',
         businessName: displayName.replace(/^Jc\.\s*/i, '') + ' Ventures',
         businessCategory: 'Technology & Software',
-        membershipId: 'JCI-TI-SA-001',
+        membershipId: `JCI-TI-M${Math.floor(100 + Math.random() * 900)}`,
         bloodGroup: 'O+ve',
         status: 'Active',
         products: [
-          { name: 'Custom Cloud Architecture & ERP', price: '₹ 45,000+', desc: 'High availability scalable enterprise software' },
-          { name: 'Digital Transformation Retainer', price: '₹ 25,000/mo', desc: 'Managed web platforms and cloud automation' }
+          { name: 'Initial Business Consultation', price: 'Complimentary', desc: 'B2B discussion & entrepreneurial matchmaking' }
         ]
       }
     };
