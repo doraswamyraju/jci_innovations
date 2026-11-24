@@ -12,11 +12,12 @@ import {
   Cake, 
   Phone, 
   Award, 
-  LayoutDashboard 
+  LayoutDashboard,
+  Briefcase
 } from 'lucide-react';
 import JciLogo from './JciLogo';
 
-export default function Navbar({ onOpenRegister, onOpenFullAdmin, pendingCount = 2 }) {
+export default function Navbar({ onOpenRegister, onOpenFullAdmin, onOpenJayceePortal, pendingCount = 2 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -109,6 +110,40 @@ export default function Navbar({ onOpenRegister, onOpenFullAdmin, pendingCount =
 
           {/* Right Action Buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Jaycee Hub (Web Module for All 4 Roles) */}
+            <button
+              onClick={onOpenJayceePortal}
+              style={{
+                background: 'linear-gradient(135deg, #0284c7 0%, #004578 100%)',
+                color: '#ffffff',
+                border: '1px solid #38bdf8',
+                padding: '9px 15px',
+                borderRadius: '8px',
+                fontSize: '0.84rem',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
+                transition: 'all 0.2s'
+              }}
+              title="Open Web Module for Super Admin, President, Officers & Members"
+            >
+              <Briefcase size={16} color="#fde68a" />
+              <span>Jaycee Portal</span>
+              <span style={{
+                background: '#f59e0b',
+                color: '#000000',
+                fontSize: '0.65rem',
+                fontWeight: '900',
+                padding: '1px 6px',
+                borderRadius: '10px'
+              }}>
+                4 Roles
+              </span>
+            </button>
+
             {/* Admin Command Center */}
             <button
               onClick={onOpenFullAdmin}
@@ -194,6 +229,26 @@ export default function Navbar({ onOpenRegister, onOpenFullAdmin, pendingCount =
           <a onClick={() => setMobileMenuOpen(false)} href="#pillars" style={{ color: '#0f172a', fontSize: '1rem', fontWeight: '600' }}>10 Pillars</a>
           <a onClick={() => setMobileMenuOpen(false)} href="#events" style={{ color: '#0f172a', fontSize: '1rem', fontWeight: '600' }}>Events</a>
           <a onClick={() => setMobileMenuOpen(false)} href="#partners" style={{ color: '#0f172a', fontSize: '1rem', fontWeight: '600' }}>Partner Perks</a>
+          <button 
+            onClick={() => { setMobileMenuOpen(false); onOpenJayceePortal(); }}
+            style={{
+              marginTop: '6px',
+              padding: '12px',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #004578 100%)',
+              color: 'white',
+              fontWeight: '700',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            <Briefcase size={18} color="#fde68a" />
+            <span>Jaycee Hub (All 4 User Roles)</span>
+          </button>
           <button 
             onClick={() => { setMobileMenuOpen(false); onOpenFullAdmin(); }}
             style={{

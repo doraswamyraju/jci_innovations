@@ -14,6 +14,7 @@ import JayceeRegistrationModal from './components/JayceeRegistrationModal';
 import AdminApprovalQueueModal from './components/AdminApprovalQueueModal';
 import LogConnectModal from './components/LogConnectModal';
 import AdminPanel from './components/AdminPanel';
+import JayceePortalModal from './components/JayceePortalModal';
 
 import { PENDING_JAYCEE_APPLICATIONS, RECENT_CONNECT_FEED, BUSINESSES } from './data/mockData';
 
@@ -22,14 +23,17 @@ export default function App() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isAdminQueueOpen, setIsAdminQueueOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isJayceePortalOpen, setIsJayceePortalOpen] = useState(false);
   const [isLogConnectOpen, setIsLogConnectOpen] = useState(false);
   const [logConnectTargetBiz, setLogConnectTargetBiz] = useState(null);
 
   // Dynamic state
   const [applications, setApplications] = useState(PENDING_JAYCEE_APPLICATIONS);
   const [connectFeed, setConnectFeed] = useState(RECENT_CONNECT_FEED);
+  const [customBizOfTheDay, setCustomBizOfTheDay] = useState(BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0]);
+  const [liveCelebrationFlyer, setLiveCelebrationFlyer] = useState(null);
 
-  const businessOfTheDay = BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0];
+  const businessOfTheDay = customBizOfTheDay || BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0];
 
   const handleAddApplication = (newApp) => {
     setApplications(prev => [newApp, ...prev]);
@@ -56,6 +60,7 @@ export default function App() {
         onOpenRegister={() => setIsRegisterOpen(true)}
         onOpenAdminQueue={() => setIsAdminQueueOpen(true)}
         onOpenFullAdmin={() => setIsAdminPanelOpen(true)}
+        onOpenJayceePortal={() => setIsJayceePortalOpen(true)}
         pendingCount={pendingCount}
       />
 
@@ -73,6 +78,8 @@ export default function App() {
       {/* Daily Highlights: Business of the Day, Birthdays & Anniversaries */}
       <DailyHighlights 
         onSelectBusiness={(biz) => setSelectedBusiness(biz)}
+        customBusinessOfTheDay={customBizOfTheDay}
+        liveCelebrationFlyer={liveCelebrationFlyer}
       />
 
       {/* Live Business Connect & Value Tracker (₹) */}
@@ -150,6 +157,15 @@ export default function App() {
           preselectedBusiness={logConnectTargetBiz}
           onClose={() => setIsLogConnectOpen(false)}
           onAddConnect={handleAddConnect}
+        />
+      )}
+
+      {/* Unified Jaycee Hub for All 4 Roles (Super Admin, President, Officers, Member) */}
+      {isJayceePortalOpen && (
+        <JayceePortalModal 
+          onClose={() => setIsJayceePortalOpen(false)}
+          onSetBusinessOfTheDay={(biz) => setCustomBizOfTheDay(biz)}
+          onPublishCelebrationToWebsite={(flyer) => setLiveCelebrationFlyer(flyer)}
         />
       )}
     </div>

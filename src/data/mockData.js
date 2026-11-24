@@ -456,3 +456,484 @@ export const SHOWCASE_SCHEDULE = [
   { date: 'Oct 7, 2026', businessId: 'biz-5', businessName: 'Vibrant Solar & Renewable Energies', chapter: 'JCI Tirupati Power', status: 'SCHEDULED' },
   { date: 'Oct 8, 2026', businessId: 'biz-4', businessName: 'Seven Hills Chartered & Tax Advisors', chapter: 'JCI Tirupati Innovations', status: 'SCHEDULED' }
 ];
+
+// USER PERSONAS & ROLE-BASED PROFILES
+export const DEMO_USERS = [
+  {
+    id: 'user-superadmin',
+    role: 'super_admin',
+    roleTitle: 'Super Admin',
+    fullName: 'Jc. K. Naresh Kumar',
+    membershipId: 'JCI-TI-SA-001',
+    designation: 'Platform Super Admin & System Custodian',
+    chapter: 'JCI Tirupati Innovations',
+    phone: '+91 94401 11222',
+    email: 'superadmin@jcitirupati.org',
+    whatsapp: '919440111222',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    bloodGroup: 'O+ve',
+    birthday: '14 August',
+    anniversary: '28 November',
+    businessName: 'Naresh Cloud & Cyber Security Labs',
+    businessCategory: 'Technology & Software',
+    businessTagline: 'Enterprise Cloud Infrastructure, Datacenter Audits & IT Solutions',
+    businessAddress: 'Cyber Heights, 2nd Floor, AIR Bypass Road, Tirupati',
+    website: 'https://nareshcyberlabs.example.com',
+    memberDiscount: '20% Special Discount on IT Audits for Jaycees',
+    tenantEnabled: true,
+    cardTheme: 'royal-blue',
+    products: [
+      { name: 'Cloud Infrastructure Setup', price: '₹ 45,000+', desc: 'High availability AWS/Azure setups with automated backups' },
+      { name: 'Cyber Security & Vulnerability Audit', price: '₹ 25,000', desc: 'Penetration testing and compliance certification' },
+      { name: 'Managed IT Retainership', price: '₹ 12,000/mo', desc: '24/7 server monitoring and priority helpdesk' }
+    ]
+  },
+  {
+    id: 'user-president',
+    role: 'president',
+    roleTitle: 'Admin - Current Year President',
+    fullName: 'Jc. Er. P. Ramachandra Raju',
+    membershipId: 'JCI-TI-2026-PRES',
+    designation: 'Chapter President (2026)',
+    chapter: 'JCI Tirupati Innovations',
+    phone: '+91 98490 55443',
+    email: 'president2026@jcitirupati.org',
+    whatsapp: '919849055443',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    bloodGroup: 'B+ve',
+    birthday: '05 October',
+    anniversary: '18 February',
+    businessName: 'Seven Hills Structural Consultants & Builders',
+    businessCategory: 'Construction & Real Estate',
+    businessTagline: 'Architectural Planning, Structural Designs & Turnkey Building Works',
+    businessAddress: 'Opp. Police Parade Grounds, Korlagunta, Tirupati',
+    website: 'https://sevenhillsengineers.example.com',
+    memberDiscount: 'Complimentary Soil & Structural Audit + 10% on Commercial Layouts',
+    tenantEnabled: true,
+    cardTheme: 'executive-gold',
+    products: [
+      { name: 'Structural Engineering & Stability Testing', price: '₹ 35,000', desc: 'Certified structural drawings for commercial & multi-story apartments' },
+      { name: 'Turnkey Residential Villa Construction', price: '₹ 2,400/sqft', desc: 'Premium materials, earthquake-resistant design, 5-year guarantee' },
+      { name: 'TUDA & Municipal Plan Approvals', price: '₹ 15,000', desc: 'End-to-end liaison and legal documentation clearances' }
+    ]
+  },
+  {
+    id: 'user-secretary',
+    role: 'officer',
+    roleTitle: 'Officer - Chapter Secretary',
+    fullName: 'Jc. Adv. S. Venkat Reddy',
+    membershipId: 'JCI-TI-2026-SEC',
+    designation: 'Secretary (2026)',
+    chapter: 'JCI Tirupati Innovations',
+    phone: '+91 98851 22334',
+    email: 'secretary@jcitirupati.org',
+    whatsapp: '919885122334',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+    bloodGroup: 'A+ve',
+    birthday: '12 December',
+    anniversary: '04 May',
+    businessName: 'Venkat Reddy & Associates (Legal Advocates)',
+    businessCategory: 'Legal & Financial Services',
+    businessTagline: 'Corporate Law, Real Estate Title Verifications & Civil Arbitration',
+    businessAddress: 'Near District Court Complex, Tirupati',
+    website: 'https://venkatlegal.example.com',
+    memberDiscount: 'Zero Initial Consultation Fee for all Jaycees in Tirupati',
+    tenantEnabled: false,
+    cardTheme: 'minimal-slate',
+    products: [
+      { name: 'Property Title Verification & Legal Opinion', price: '₹ 7,500', desc: '30-year search report with encumbrance verification' },
+      { name: 'Commercial Contract & Partnership Drafting', price: '₹ 10,000', desc: 'NDAs, shareholder agreements, MoUs & vendor terms' },
+      { name: 'Dispute Arbitration & Legal Representation', price: 'Case-based', desc: 'Civil dispute resolution and company law tribunal representation' }
+    ]
+  },
+  {
+    id: 'user-treasurer',
+    role: 'officer',
+    roleTitle: 'Officer - Chapter Treasurer',
+    fullName: 'Jc. CA M. Swathi Rao, FCA',
+    membershipId: 'JCI-TI-2026-TREAS',
+    designation: 'Treasurer (2026)',
+    chapter: 'JCI Tirupati Innovations',
+    phone: '+91 97000 34567',
+    email: 'treasurer@jcitirupati.org',
+    whatsapp: '919700034567',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
+    bloodGroup: 'B+ve',
+    birthday: '21 January',
+    anniversary: '10th Wedding Anniversary',
+    businessName: 'Seven Hills Chartered & Tax Advisors',
+    businessCategory: 'Legal & Financial Services',
+    businessTagline: 'GST Filings, Corporate Audits, Startup Advisory & Tax Planning',
+    businessAddress: 'Opp. SV University Gate, Air Bypass Road, Tirupati',
+    website: 'https://sevenhillstax.example.com',
+    memberDiscount: 'Complimentary Financial Health Checkup & 20% on Annual Retainership',
+    tenantEnabled: true,
+    cardTheme: 'royal-blue',
+    products: [
+      { name: 'Statutory & Tax Audit', price: '₹ 30,000+', desc: 'Income tax audits, international taxation, and compliance' },
+      { name: 'Company & LLP Incorporation', price: '₹ 12,000', desc: 'Startup India registration, DPIIT recognition, MSME certification' },
+      { name: 'Project Financing & Loan Syndication DPR', price: '₹ 25,000', desc: 'Detailed Project Reports for bank credit facilities' }
+    ]
+  },
+  {
+    id: 'user-member',
+    role: 'member',
+    roleTitle: 'Member - Entrepreneur',
+    fullName: 'Jc. R. Dinesh Kumar',
+    membershipId: 'JCI-TI-2026-M042',
+    designation: 'Active Member / Entrepreneur',
+    chapter: 'JCI Tirupati Innovations',
+    phone: '+91 98490 12345',
+    email: 'dinesh@srikrishnasoft.com',
+    whatsapp: '919849012345',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80',
+    bloodGroup: 'O+ve',
+    birthday: '18 March',
+    anniversary: '22 October',
+    businessName: 'Sri Krishna Soft Solutions',
+    businessCategory: 'Technology & Software',
+    businessTagline: 'Custom Web & Mobile Apps, Cloud ERP & Digital Transformation',
+    businessAddress: 'Plot 42, Korlagunta Main Road, Tirupati',
+    website: 'https://srikrishnasoft.example.com',
+    memberDiscount: '15% Discount on Custom Web & App Development for all Tirupati Jaycees',
+    tenantEnabled: true,
+    cardTheme: 'modern-dark',
+    products: [
+      { name: 'Custom ERP & Business Portals', price: '₹ 60,000+', desc: 'Multi-branch operations, invoicing, inventory & analytics' },
+      { name: 'Full-Stack Mobile Apps (Android/iOS)', price: '₹ 80,000+', desc: 'React Native & Flutter mobile applications' },
+      { name: 'E-commerce & WhatsApp Ordering Bots', price: '₹ 35,000', desc: 'Automated catalog ordering and UPI payment integration' }
+    ]
+  }
+];
+
+// CHAPTER ASSETS MANAGEMENT
+export const INITIAL_CHAPTER_ASSETS = [
+  {
+    id: 'ast-101',
+    name: 'Presidential Brass Collar & Gold-Plated Medallion',
+    category: 'Regalia & Ceremonial',
+    custodian: 'Jc. Er. P. Ramachandra Raju (President 2026)',
+    location: 'Presidential Safe Box / Meeting Hall',
+    condition: 'Excellent',
+    valuationINR: 65000,
+    purchaseYear: 2022,
+    lastAudited: 'Oct 01, 2026',
+    notes: 'Worn strictly during Installation, Zone Visits, and Official GB Meetings.'
+  },
+  {
+    id: 'ast-102',
+    name: 'Official Heavy Brass Gavel & Sounding Block',
+    category: 'Ceremonial & Parliamentary',
+    custodian: 'Jc. Adv. S. Venkat Reddy (Secretary 2026)',
+    location: 'Secretariat Kit / Meeting Hall',
+    condition: 'Excellent',
+    valuationINR: 8500,
+    purchaseYear: 2021,
+    lastAudited: 'Oct 01, 2026',
+    notes: 'Used to call meetings to order, adjourn, and declare voting outcomes.'
+  },
+  {
+    id: 'ast-103',
+    name: 'JCI Flag & Indian National Flag with Chrome Telescopic Stands',
+    category: 'Protocol & Stage Decor',
+    custodian: 'Jc. Adv. S. Venkat Reddy (Secretary 2026)',
+    location: 'Innovations Chapter Office Store',
+    condition: 'Good',
+    valuationINR: 14000,
+    purchaseYear: 2023,
+    lastAudited: 'Sep 15, 2026',
+    notes: '2 sets: 1 for outdoor community camps, 1 premium set for indoor conderences.'
+  },
+  {
+    id: 'ast-104',
+    name: 'JBL PartyBox Stage PA System + Dual Wireless UHF Microphones',
+    category: 'Audio / Visual Equipment',
+    custodian: 'Jc. B. Naveen Kumar (Director Youth & Sports)',
+    location: 'Sports & Training Center',
+    condition: 'Excellent',
+    valuationINR: 42000,
+    purchaseYear: 2024,
+    lastAudited: 'Sep 28, 2026',
+    notes: 'Includes wireless transmitter, battery backup, and stand.'
+  },
+  {
+    id: 'ast-105',
+    name: 'Epson 3800 Lumens Full HD Projector with 100" Tripod Screen',
+    category: 'Audio / Visual Equipment',
+    custodian: 'Jc. R. Dinesh Kumar (VP Business)',
+    location: 'Chapter Training Hall',
+    condition: 'Good',
+    valuationINR: 58000,
+    purchaseYear: 2023,
+    lastAudited: 'Aug 20, 2026',
+    notes: 'Includes 15m HDMI cable, remote, and padded travel bag.'
+  },
+  {
+    id: 'ast-106',
+    name: 'Health Camp Portable Canopy Tents & Rollup Banners (3 Sets)',
+    category: 'Community Camp Equipment',
+    custodian: 'Dr. Jc. K. Sumanth Reddy (Director Community)',
+    location: 'Clinic Logistics Room',
+    condition: 'Fair',
+    valuationINR: 19500,
+    purchaseYear: 2024,
+    lastAudited: 'Sep 10, 2026',
+    notes: 'Requires replacement of 1 standee base before next Mega Blood Donation camp.'
+  }
+];
+
+// TREASURY & ACCOUNTS MANAGEMENT (DUAL-SIGNOFF WORKFLOW)
+export const INITIAL_ACCOUNTS_LEDGER = [
+  {
+    id: 'tx-201',
+    date: '2026-10-02',
+    type: 'INCOME',
+    category: 'Annual Membership Dues',
+    description: 'Annual membership renewal - 12 Jaycees batch (Zone IV quota cleared)',
+    amountINR: 72000,
+    initiatedBy: 'Jc. CA M. Swathi Rao (Treasurer)',
+    approvedBy: 'Jc. Er. P. Ramachandra Raju (President)',
+    status: 'APPROVED',
+    receiptVoucherNo: 'REC-2026-088',
+    paymentMethod: 'HDFC Bank NEFT'
+  },
+  {
+    id: 'tx-202',
+    date: '2026-10-01',
+    type: 'EXPENSE',
+    category: 'Meeting & Hospitality',
+    description: 'General Body Dinner Meeting & Guest Speaker Honorarium at Grand Tirupati',
+    amountINR: 28500,
+    initiatedBy: 'Jc. CA M. Swathi Rao (Treasurer)',
+    approvedBy: 'Jc. Er. P. Ramachandra Raju (President)',
+    status: 'APPROVED',
+    receiptVoucherNo: 'VOUCH-2026-042',
+    paymentMethod: 'UPI Chapter Official'
+  },
+  {
+    id: 'tx-203',
+    date: '2026-09-26',
+    type: 'INCOME',
+    category: 'Corporate Sponsorship',
+    description: 'Title Sponsorship from Seven Hills Builders for Mega Business Expo 2026',
+    amountINR: 150000,
+    initiatedBy: 'Jc. CA M. Swathi Rao (Treasurer)',
+    approvedBy: 'Jc. Er. P. Ramachandra Raju (President)',
+    status: 'APPROVED',
+    receiptVoucherNo: 'REC-2026-087',
+    paymentMethod: 'Cheque Cleared'
+  },
+  {
+    id: 'tx-204',
+    date: '2026-09-22',
+    type: 'EXPENSE',
+    category: 'Community Welfare & Health',
+    description: 'Medical Camp Medicine Kits & Blood Donation Bag supplies',
+    amountINR: 18200,
+    initiatedBy: 'Jc. CA M. Swathi Rao (Treasurer)',
+    approvedBy: 'Jc. Er. P. Ramachandra Raju (President)',
+    status: 'APPROVED',
+    receiptVoucherNo: 'VOUCH-2026-041',
+    paymentMethod: 'Bank Transfer'
+  },
+  {
+    id: 'tx-205',
+    date: '2026-10-03',
+    type: 'EXPENSE',
+    category: 'Digital & Media Branding',
+    description: 'Flyer printing, digital stage backdrop, and domain maintenance',
+    amountINR: 9400,
+    initiatedBy: 'Jc. CA M. Swathi Rao (Treasurer)',
+    approvedBy: null,
+    status: 'PENDING_PRESIDENT_APPROVAL',
+    receiptVoucherNo: 'VOUCH-2026-043',
+    paymentMethod: 'Pending Approval'
+  }
+];
+
+// PRESIDENTIAL TENURES & CABINET HANDOVER
+export const PRESIDENTIAL_TENURES = [
+  {
+    year: 2025,
+    status: 'ARCHIVED',
+    presidentName: 'Jc. T. Venkatesh Chowdary',
+    theme: 'Unite, Empower, Lead',
+    secretary: 'Jc. P. Rajesh Varma',
+    treasurer: 'Jc. CA M. Swathi Rao',
+    totalTradeGeneratedINR: '₹ 84,00,000',
+    totalProjectsCompleted: 28,
+    membersInducted: 16
+  },
+  {
+    year: 2026,
+    status: 'ACTIVE_TENURE',
+    presidentName: 'Jc. Er. P. Ramachandra Raju',
+    theme: 'Innovate to Elevate: Trade, Health & Youth',
+    secretary: 'Jc. Adv. S. Venkat Reddy',
+    treasurer: 'Jc. CA M. Swathi Rao',
+    totalTradeGeneratedINR: '₹ 1,18,45,000',
+    totalProjectsCompleted: 34,
+    membersInducted: 24,
+    officersList: [
+      { portfolio: 'Secretary', name: 'Jc. Adv. S. Venkat Reddy', contact: '+91 98851 22334' },
+      { portfolio: 'Treasurer', name: 'Jc. CA M. Swathi Rao', contact: '+91 97000 34567' },
+      { portfolio: 'VP (Business & Commerce)', name: 'Jc. R. Dinesh Kumar', contact: '+91 98490 12345' },
+      { portfolio: 'VP (Community & Civic Action)', name: 'Dr. Jc. K. Sumanth Reddy', contact: '+91 94400 56789' },
+      { portfolio: 'VP (Fellowship & PR)', name: 'Jc. G. Harish Naidu', contact: '+91 98480 98765' },
+      { portfolio: 'Director (Youth & Boxing Sports)', name: 'Jc. B. Naveen Kumar', contact: '+91 98491 55667' },
+      { portfolio: 'Director (Training & Development)', name: 'Jc. Ananya Sharma', contact: '+91 98850 44332' }
+    ]
+  },
+  {
+    year: 2027,
+    status: 'INCOMING_ELECT',
+    presidentName: 'Jc. R. Dinesh Kumar (President-Elect)',
+    theme: 'Digital Jaycees: Empowering Local Enterprises',
+    secretary: 'Jc. CA M. Swathi Rao (Proposed)',
+    treasurer: 'Jc. B. Naveen Kumar (Proposed)',
+    handoverDate: 'December 28, 2026',
+    isHandoverReady: true
+  }
+];
+
+// LEADS & BUSINESS REFERRALS CRM PIPELINE
+export const INITIAL_LEADS_PIPELINE = [
+  {
+    id: 'lead-301',
+    title: 'Hospital Management ERP & Patient Portal',
+    clientName: 'Dr. Madhavan (Apollo Reach Clinic, Tirupati)',
+    clientPhone: '+91 98495 23411',
+    clientEmail: 'admin@apolloreach.example.com',
+    source: 'Website Public Directory / WhatsApp Click',
+    assignedToId: 'user-member', // Jc. R. Dinesh Kumar
+    assignedToName: 'Jc. R. Dinesh Kumar (Sri Krishna Soft)',
+    referrerName: 'Public Inbound / Website Visitor',
+    stage: 'IN_DISCUSSION', // 'NEW' | 'CONTACTED' | 'IN_DISCUSSION' | 'PROPOSAL_SENT' | 'CLOSED_WON' | 'CLOSED_LOST'
+    estimatedValueINR: 180000,
+    actualClosedValueINR: 0,
+    notes: 'Demo completed on Oct 2nd. Needs integration with pathology billing module. Follow up on Tuesday.',
+    nextFollowUpDate: '2026-10-06',
+    createdAt: '2026-09-29'
+  },
+  {
+    id: 'lead-302',
+    title: 'Commercial Office Space 30kW Rooftop Solar',
+    clientName: 'Mr. B. Ravindra (Tirupati Auto Mall)',
+    clientPhone: '+91 94403 77890',
+    clientEmail: 'facilities@tirupatiauto.example.com',
+    source: 'P2P Jaycee Referral',
+    assignedToId: 'user-superadmin',
+    assignedToName: 'Jc. P. Rajesh Varma (Vibrant Solar)',
+    referrerName: 'Jc. Er. P. Ramachandra Raju (President 2026)',
+    stage: 'CLOSED_WON',
+    estimatedValueINR: 1450000,
+    actualClosedValueINR: 1450000,
+    notes: 'Net metering approved by APSPDCL. Advance of ₹ 5,00,000 received. Closed successfully!',
+    nextFollowUpDate: 'Project Underway',
+    createdAt: '2026-09-18'
+  },
+  {
+    id: 'lead-303',
+    title: 'Annual Statutory Tax Audit & Startup DPIIT Certification',
+    clientName: 'Praveen Teja (NutriFoods Agro Pvt Ltd)',
+    clientPhone: '+91 97004 55661',
+    clientEmail: 'finance@nutrifoods.example.com',
+    source: 'Social Media / Flyer Link',
+    assignedToId: 'user-treasurer', // Jc. CA M. Swathi Rao
+    assignedToName: 'Jc. CA M. Swathi Rao (Seven Hills Tax)',
+    referrerName: 'LinkedIn Profile Shared Flyer',
+    stage: 'PROPOSAL_SENT',
+    estimatedValueINR: 65000,
+    actualClosedValueINR: 0,
+    notes: 'Proposal sent with 3-tier audit pricing. Awaiting board resolution.',
+    nextFollowUpDate: '2026-10-08',
+    createdAt: '2026-10-01'
+  },
+  {
+    id: 'lead-304',
+    title: 'Turnkey Construction of 4-BHK Luxury Duplex Villa',
+    clientName: 'NR Jaycee Srinivasan (California, USA - Tirupati native)',
+    clientPhone: '+1 408 555 0199',
+    clientEmail: 'srini.v@gmail.com',
+    source: 'Digital Visiting Card QR Scan at Expo',
+    assignedToId: 'user-president', // Jc. Er. P. Ramachandra Raju
+    assignedToName: 'Jc. Er. P. Ramachandra Raju (Seven Hills Structural)',
+    referrerName: 'Jc. Adv. S. Venkat Reddy (Secretary 2026)',
+    stage: 'IN_DISCUSSION',
+    estimatedValueINR: 6200000,
+    actualClosedValueINR: 0,
+    notes: 'Plan submitted. Virtual walkthrough scheduled via Zoom this Sunday.',
+    nextFollowUpDate: '2026-10-07',
+    createdAt: '2026-09-25'
+  },
+  {
+    id: 'lead-305',
+    title: 'Precast Boundary Walls & Security Cabin (1200 running ft)',
+    clientName: 'K. Somasekhar Naidu (Warehouse developer)',
+    clientPhone: '+91 98852 99001',
+    clientEmail: 'soma.naidu@gmail.com',
+    source: 'Website Public Directory',
+    assignedToId: 'user-member',
+    assignedToName: 'Jc. T. Venkatesh Chowdary (Saptagiri Infra)',
+    referrerName: 'Website Visitor Form',
+    stage: 'NEW',
+    estimatedValueINR: 380000,
+    actualClosedValueINR: 0,
+    notes: 'Inquiry received for Renigunta road industrial corridor. Need to schedule site visit.',
+    nextFollowUpDate: '2026-10-05',
+    createdAt: '2026-10-04'
+  }
+];
+
+// CALENDAR EVENTS & REMINDERS
+export const CHAPTER_CALENDAR_ITEMS = [
+  {
+    id: 'cal-1',
+    title: '10th Board of Directors (BOD) Meeting',
+    date: '2026-10-12',
+    time: '07:30 PM - 09:30 PM',
+    venue: 'Board Room, Hotel Bliss, Tirupati',
+    type: 'BOD_MEETING', // 'BOD_MEETING' | 'GB_MEETING' | 'EXPO_TRAINING' | 'CELEBRATION'
+    attendees: 'PST & Board Officers Only',
+    agenda: 'Accounts audit approval, Review of Mega Business Expo stalls, Presidential handover timeline',
+    isMandatory: true,
+    reminderHours: 24
+  },
+  {
+    id: 'cal-2',
+    title: 'General Body (GB) Meeting & Jaycee Business Spotlight',
+    date: '2026-10-18',
+    time: '06:30 PM - 09:30 PM',
+    venue: 'Grand Tirupati Convention Center, Alipiri Road',
+    type: 'GB_MEETING',
+    attendees: 'All Active Chapter Jaycees & Jayceerettes',
+    agenda: 'Business of the Month recognition, Induction of 4 new members, Fellowship Dinner',
+    isMandatory: true,
+    reminderHours: 48
+  },
+  {
+    id: 'cal-3',
+    title: 'Tirupati Jaycees Mega Business Expo 2026',
+    date: '2026-10-25',
+    time: '09:30 AM - 06:00 PM',
+    venue: 'Grand Tirupati Convention Center, Alipiri Road',
+    type: 'EXPO_TRAINING',
+    attendees: 'Open to All Public, Jaycees & Business Delegations',
+    agenda: '50+ member stalls, speed networking, investment talks, B2B lead signing ceremonies',
+    isMandatory: false,
+    reminderHours: 72
+  },
+  {
+    id: 'cal-4',
+    title: 'Jc. B. Naveen Kumar Birthday Celebration',
+    date: '2026-10-04',
+    time: 'All Day',
+    venue: 'Online / WhatsApp Wishes & Social Banner',
+    type: 'CELEBRATION',
+    attendees: 'Chapter Fellowship',
+    agenda: 'Automated greeting flyer dispatch & digital congratulations',
+    isMandatory: false,
+    reminderHours: 0
+  }
+];
+

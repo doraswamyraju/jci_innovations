@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import { CELEBRATIONS, BUSINESSES } from '../data/mockData';
 
-export default function DailyHighlights({ onSelectBusiness }) {
-  const businessOfTheDay = BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0];
+export default function DailyHighlights({ onSelectBusiness, customBusinessOfTheDay, liveCelebrationFlyer }) {
+  const businessOfTheDay = customBusinessOfTheDay || BUSINESSES.find(b => b.isBusinessOfTheDay) || BUSINESSES[0];
   const [wishedIds, setWishedIds] = useState([]);
 
   const triggerConfetti = (id, name, type) => {
@@ -46,6 +46,70 @@ export default function DailyHighlights({ onSelectBusiness }) {
             Every day, the platform shines a spotlight on one Jaycee enterprise, along with celebrating our members' special milestones.
           </p>
         </div>
+
+        {/* Live Published Celebration Flyer Banner */}
+        {liveCelebrationFlyer && (
+          <div style={{
+            background: 'linear-gradient(90deg, #be185d 0%, #db2777 50%, #9d174d 100%)',
+            color: '#ffffff',
+            borderRadius: '16px',
+            padding: '16px 24px',
+            marginBottom: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '14px',
+            boxShadow: '0 10px 25px -5px rgba(219, 39, 119, 0.4)',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                background: '#ffffff',
+                color: '#be185d',
+                borderRadius: '50%',
+                width: '42px',
+                height: '42px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <Cake size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.74rem', fontWeight: '800', letterSpacing: '0.08em', color: '#fbcfe8', textTransform: 'uppercase' }}>
+                  ★ LIVE HOMEPAGE CELEBRATION DISPATCH ({liveCelebrationFlyer.publishedAt})
+                </div>
+                <div style={{ fontSize: '1.05rem', fontWeight: '800', color: '#ffffff' }}>
+                  {liveCelebrationFlyer.type === 'BIRTHDAY' ? '🎂 Happy Birthday to ' : '💐 Happy Wedding Anniversary to '}
+                  <strong>{liveCelebrationFlyer.memberName}</strong> ({liveCelebrationFlyer.designation})
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => triggerConfetti('live-banner', liveCelebrationFlyer.memberName, liveCelebrationFlyer.type === 'BIRTHDAY' ? 'Birthday' : 'Anniversary')}
+              style={{
+                background: '#ffffff',
+                color: '#be185d',
+                border: 'none',
+                padding: '10px 18px',
+                borderRadius: '10px',
+                fontSize: '0.84rem',
+                fontWeight: '800',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+              }}
+            >
+              <Sparkles size={16} color="#be185d" />
+              <span>Send Wishes & Confetti!</span>
+            </button>
+          </div>
+        )}
 
         {/* 3-Column / 2-Column Responsive Layout */}
         <div style={{

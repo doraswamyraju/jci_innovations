@@ -3,12 +3,16 @@
 Official digital platform for JCI Tirupati Innovations and Jaycees across Tirupati.
 
 ## 🚀 Key Features
+- **4-Role Web Command Hub**: Dedicated workflows & permissions for Super Admin, Admin (Current Year President), Officers (Secretary, Treasurer, VPs, Directors), and Members.
+- **Dynamic Digital Visiting Card (vCard & QR)**: 4 executive themes, live scannable QR code, 1-tap "Save to Contacts (.vcf)", and Letstrack enterprise multi-tenant suite.
+- **End-to-End Leads & Referral CRM**: Inbound capture from website/socials, P2P Jaycee referrals, stage pipeline, and ₹ deal value tracking.
+- **Automated Celebration Flyer Studio**: Dynamic canvas for member Birthdays & Anniversaries with 1-click live publish to website banner and WhatsApp dispatch.
+- **Chapter Asset & Inventory Register**: Tracking regalia, sound systems, flags, projectors, current custodians, condition, and location.
+- **Annual Presidential Handover Engine**: Seamless transition between past, active, and incoming Presidents with PST team and cabinet appointments.
+- **Dual-Signoff Treasury & Accounts**: Income & expense ledger with Treasurer initiation and Presidential approval workflow.
 - **City-Wide Jaycees Onboarding**: Open registration for all Tirupati JCI chapters with mandatory Admin verification queue.
 - **Dedicated Business Showcase Pages**: Rich SEO-friendly profiles for member-owned enterprises with self-service update controls and direct WhatsApp lead capture.
-- **Jaycee Business Connect & Value Tracker**: Real-time B2B referrals and closed deal value tracking in INR (₹).
 - **Business of the Day**: Automated daily rotation and promotional showcase on homepage.
-- **Celebrations Engine**: Automated daily Birthday and Wedding Anniversary wishes with interactive celebratory confetti.
-- **10 Organizational Pillars**: Comprehensive showcase for youth training, health camps, boxing academies, and community welfare.
 - **Events & Digital Pass**: Calendar of conclaves and expos with instant QR-pass registration.
 - **Merchant Partner Perks**: Exclusive discounts across Tirupati dining, hospitals, and automobiles.
 
