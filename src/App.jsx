@@ -14,7 +14,7 @@ import JayceeRegistrationModal from './components/JayceeRegistrationModal';
 import AdminApprovalQueueModal from './components/AdminApprovalQueueModal';
 import LogConnectModal from './components/LogConnectModal';
 import AdminPanel from './components/AdminPanel';
-import JayceePortalModal from './components/JayceePortalModal';
+import JayceeDashboard from './components/JayceeDashboard';
 
 import { PENDING_JAYCEE_APPLICATIONS, RECENT_CONNECT_FEED, BUSINESSES } from './data/mockData';
 
@@ -53,10 +53,21 @@ export default function App() {
 
   const pendingCount = applications.filter(a => a.status === 'PENDING').length;
 
+  // SPA Full-Page Dedicated Dashboard Mode (Light Mode, Dedicated Sidebar & Topbar)
+  if (isJayceePortalOpen) {
+    return (
+      <JayceeDashboard
+        onExitToWebsite={() => setIsJayceePortalOpen(false)}
+        onSetBusinessOfTheDay={(biz) => setCustomBizOfTheDay(biz)}
+        onPublishCelebrationToWebsite={(flyer) => setLiveCelebrationFlyer(flyer)}
+      />
+    );
+  }
+
   return (
     <div className="app-root">
       {/* Navigation Bar */}
-      <Navbar 
+      <Navbar
         onOpenRegister={() => setIsRegisterOpen(true)}
         onOpenAdminQueue={() => setIsAdminQueueOpen(true)}
         onOpenFullAdmin={() => setIsAdminPanelOpen(true)}
@@ -65,7 +76,7 @@ export default function App() {
       />
 
       {/* Redesigned Hero Banner with 4 LOs Branding & Live Card */}
-      <Hero 
+      <Hero
         onOpenRegister={() => setIsRegisterOpen(true)}
         onOpenLogConnect={() => {
           setLogConnectTargetBiz(null);
@@ -76,14 +87,14 @@ export default function App() {
       />
 
       {/* Daily Highlights: Business of the Day, Birthdays & Anniversaries */}
-      <DailyHighlights 
+      <DailyHighlights
         onSelectBusiness={(biz) => setSelectedBusiness(biz)}
         customBusinessOfTheDay={customBizOfTheDay}
         liveCelebrationFlyer={liveCelebrationFlyer}
       />
 
       {/* Live Business Connect & Value Tracker (₹) */}
-      <ConnectTrackerSection 
+      <ConnectTrackerSection
         onOpenLogConnect={() => {
           setLogConnectTargetBiz(null);
           setIsLogConnectOpen(true);
@@ -91,7 +102,7 @@ export default function App() {
       />
 
       {/* Member-Owned Business Directory (Search, Filters, Dedicated Pages) */}
-      <BusinessDirectory 
+      <BusinessDirectory
         onSelectBusiness={(biz) => setSelectedBusiness(biz)}
         onOpenRegister={() => setIsRegisterOpen(true)}
       />
@@ -106,13 +117,13 @@ export default function App() {
       <PartnerBenefits />
 
       {/* Footer */}
-      <Footer 
+      <Footer
         onOpenRegister={() => setIsRegisterOpen(true)}
       />
 
       {/* Dedicated Business Page Modal */}
       {selectedBusiness && (
-        <BusinessShowcaseModal 
+        <BusinessShowcaseModal
           business={selectedBusiness}
           onClose={() => setSelectedBusiness(null)}
           onOpenLogConnect={(biz) => {
@@ -124,7 +135,7 @@ export default function App() {
 
       {/* Registration Modal for All 4 Tirupati Jaycees Chapters */}
       {isRegisterOpen && (
-        <JayceeRegistrationModal 
+        <JayceeRegistrationModal
           onClose={() => setIsRegisterOpen(false)}
           onSubmitApplication={handleAddApplication}
         />
@@ -132,7 +143,7 @@ export default function App() {
 
       {/* Quick Approval Queue Modal */}
       {isAdminQueueOpen && (
-        <AdminApprovalQueueModal 
+        <AdminApprovalQueueModal
           applications={applications}
           onClose={() => setIsAdminQueueOpen(false)}
           onApprove={handleApproveApplication}
@@ -142,7 +153,7 @@ export default function App() {
 
       {/* Full Admin Command Center */}
       {isAdminPanelOpen && (
-        <AdminPanel 
+        <AdminPanel
           applications={applications}
           onApproveApplication={handleApproveApplication}
           onRejectApplication={handleRejectApplication}
@@ -153,19 +164,10 @@ export default function App() {
 
       {/* Pass a Connect / Log Closed Deal Modal */}
       {isLogConnectOpen && (
-        <LogConnectModal 
+        <LogConnectModal
           preselectedBusiness={logConnectTargetBiz}
           onClose={() => setIsLogConnectOpen(false)}
           onAddConnect={handleAddConnect}
-        />
-      )}
-
-      {/* Unified Jaycee Hub for All 4 Roles (Super Admin, President, Officers, Member) */}
-      {isJayceePortalOpen && (
-        <JayceePortalModal 
-          onClose={() => setIsJayceePortalOpen(false)}
-          onSetBusinessOfTheDay={(biz) => setCustomBizOfTheDay(biz)}
-          onPublishCelebrationToWebsite={(flyer) => setLiveCelebrationFlyer(flyer)}
         />
       )}
     </div>
