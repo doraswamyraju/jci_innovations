@@ -2,10 +2,9 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
-// Your web app's Firebase configuration
-// These can be configured in your .env file or updated directly here
+// Your web app's Firebase configuration loaded from environment variables (.env)
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDvPrVZseB6fu1EJ3jtBlLPlkx4d7gNYLc",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "innovations-25dd2.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "innovations-25dd2",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "innovations-25dd2.firebasestorage.app",
@@ -29,7 +28,7 @@ googleProvider.setCustomParameters({
  */
 export async function signInWithGoogle() {
   // Check if real API key is configured
-  if (firebaseConfig.apiKey.includes('DummyKey')) {
+  if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('DummyKey')) {
     // If not yet configured with real Firebase credentials, return demo user
     return {
       isDemo: true,
