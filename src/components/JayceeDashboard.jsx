@@ -1481,6 +1481,34 @@ END:VCARD`;
                 </div>
               </div>
 
+              {/* Executive KPI Stat Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>TOTAL PIPELINE LEADS</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#005696', margin: '4px 0' }}>{leadsList.length} Opportunities</div>
+                  <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>✓ 100% Verified Members</div>
+                </div>
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>CLOSED WON VALUE (INR)</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#059669', margin: '4px 0' }}>
+                    ₹ {leadsList.filter(l => l.stage === 'CLOSED_WON').reduce((a, b) => a + (b.actualClosedValueINR || 0), 0).toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>🎉 Economic Impact Added</div>
+                </div>
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>ESTIMATED ACTIVE VALUE</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#d97706', margin: '4px 0' }}>
+                    ₹ {leadsList.reduce((a, b) => a + (b.estimatedValueINR || 0), 0).toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>In Discussion / Proposals</div>
+                </div>
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>LIVE DATABASE ENGINE</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0284c7', margin: '4px 0' }}>Firebase Firestore</div>
+                  <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>🟢 Live Reactive Sync</div>
+                </div>
+              </div>
+
               {/* Kanban / Cards Grid */}
               <div style={{
                 display: 'grid',
@@ -3174,6 +3202,34 @@ END:VCARD`;
                     <PlusCircle size={16} />
                     <span>{isSuperAdmin ? 'Create New User' : 'Appoint Officer / Add Member'}</span>
                   </button>
+                </div>
+              </div>
+
+              {/* Executive KPI Stat Cards for Users */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>TOTAL CHAPTER STRENGTH</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#005696', margin: '4px 0' }}>{usersList.length} Members</div>
+                  <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>✓ Verified Jaycees</div>
+                </div>
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>CABINET OFFICERS</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#7c3aed', margin: '4px 0' }}>
+                    {usersList.filter(u => u.role === 'officer' || u.role === 'president').length} Leaders
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#7c3aed', fontWeight: '600' }}>President, Secretary, Treasurer</div>
+                </div>
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>ACTIVE GOOD STANDING</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: '800', color: '#059669', margin: '4px 0' }}>
+                    {usersList.filter(u => u.status !== 'Suspended').length} Active
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>100% Operational Status</div>
+                </div>
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: '700' }}>LIVE CLOUD REPOSITORY</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0284c7', margin: '4px 0' }}>innovations-25dd2</div>
+                  <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: '600' }}>🟢 Real-time Synchronized</div>
                 </div>
               </div>
 
